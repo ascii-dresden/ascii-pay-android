@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Ascii Pay Card</string>
+    <string name="servicedesc">Listener for ascii pay Terminal</string>>
+    <string name="aiddescription">Filter for AIDs coming from the ascii pay terminal</string>>
+
+    <string name="hceUnavailableTitle">Unsupported Device</string>>
+    <string name="hceUnavailableMessage">This device does not support virtual Ascii Cards.</string>>
+</resources>
