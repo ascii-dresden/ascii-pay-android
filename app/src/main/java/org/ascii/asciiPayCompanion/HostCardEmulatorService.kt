@@ -17,14 +17,29 @@ class HostCardEmulatorService : HostApduService() {
         val MIN_APDU_LENGTH = 12
     }
 
-    override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
-        Log.d(TAG, "apdu command:\n" + commandApdu.toString())
+    override fun onCreate() {
+        super.onCreate()
 
+        // TODO generate and save a new card id for this instance of the app
+
+    }
+
+    override fun onStartCommand(){
+        // TODO init card
+    }
+
+    override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         if (commandApdu == null) {
+            Log.e(TAG, "Command APDU gotten from Android is null!")
             return Utils.hexStringToByteArray(STATUS_FAILED)
         }
 
+
         val hexCommandApdu = Utils.toHex(commandApdu)
+        Log.e(TAG, "apdu command:\n" + hexCommandApdu)
+
+        return Utils.hexStringToByteArray("4242133700")
+
         if (hexCommandApdu.length < MIN_APDU_LENGTH) {
             return Utils.hexStringToByteArray(STATUS_FAILED)
         }
@@ -33,15 +48,6 @@ class HostCardEmulatorService : HostApduService() {
             return Utils.hexStringToByteArray(CLA_NOT_SUPPORTED)
         }
 
-        if (hexCommandApdu.substring(2, 4) != SELECT_INS) {
-            return Utils.hexStringToByteArray(INS_NOT_SUPPORTED)
-        }
-
-        if (hexCommandApdu.substring(10, 24) == AID)  {
-            return Utils.hexStringToByteArray(STATUS_SUCCESS)
-        } else {
-            return Utils.hexStringToByteArray(STATUS_FAILED)
-        }
     }
 
     override fun onDeactivated(reason: Int) {
