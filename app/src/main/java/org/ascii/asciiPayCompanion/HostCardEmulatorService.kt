@@ -5,17 +5,6 @@ import android.os.Bundle
 import android.util.Log
 
 class HostCardEmulatorService : HostApduService() {
-    companion object {
-        val TAG = "ascii Card Emulator"
-        val STATUS_SUCCESS = "9000"
-        val STATUS_FAILED = "6F00"
-        val CLA_NOT_SUPPORTED = "6E00"
-        val INS_NOT_SUPPORTED = "6D00"
-        val AID = "C0FFEE"
-        val SELECT_INS = "A4"
-        val DEFAULT_CLA = "00"
-        val MIN_APDU_LENGTH = 12
-    }
 
     override fun onCreate() {
         super.onCreate()

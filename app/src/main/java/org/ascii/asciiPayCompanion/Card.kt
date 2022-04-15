@@ -1,66 +1,96 @@
 package org.ascii.asciiPayCompanion
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
-import javax.crypto.SecretKey
+import android.util.Log
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import kotlin.random.Random
 
-class Card(id: ByteArray, secretKey: SecretKey) {
+
+class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     var stage: CardStage
+
+    companion object {
+        val H10 = byteArrayOf(0x10)
+    }
+    init {
+        if(id.size != 8) Log.e(Utils.TAG,"Card id is malformed: " + Utils.toHex(id))
+    }
 
     // the apdu will be forwarded to this function
     fun interact(apdu: ByteArray?, extras: Bundle?): ByteArray {
-        return when (stage) {
-            is DefaultStage -> {
-                stage = SelectedStage()
-                return stage.progress()
-            }
-            is SelectedStage -> {
-
-            }
-            is Phase1Stage -> {
-
-            }
-            is Phase2Stage -> {
-
-            }
-            else ->
-        }
+        val (ret, stage) = stage.progress(apdu, extras)
+        this.stage = stage
+        return ret
     }
 
+    // first and default stage of the card
+    // an iso select application is expected here
+    // the unique ascii card id will be returned
     inner class DefaultStage : CardStage {
-        override fun progress(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
-            TODO("Not yet implemented")
-        }
-    }
-
-    inner class SelectedStage : CardStage {
-        override fun progress(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
-            TODO("Not yet implemented")
+        override fun progress(apdu: ByteArray?, extras: Bundle?): Pair<ByteArray, CardStage> {
+            // TODO check request format
+            if(false) return Pair(Utils.STATUS_FAILED.toByteArray(), this)
+            // return the id
+            return Pair(id, Phase1Stage())
         }
     }
 
     inner class Phase1Stage : CardStage {
-        override fun progress(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
-            TODO("Not yet implemented")
+        override fun progress(apdu: ByteArray?, extras: Bundle?): Pair<ByteArray, CardStage> {
+            // request format check
+            if (!apdu.contentEquals(H10))
+                return Utils.STATUS_FAILED.toByteArray() to DefaultStage()
+
+            // Generate client challenge
+            val rndB = Random.nextBytes(8)
+            // Encrypt challenge with secret key
+            val ek_rndB = encrypt(secretKey, rndB)
+
+            // TODO return the correct challenge
+            return Pair(ek_rndB, Phase2Stage())
         }
     }
 
     inner class Phase2Stage : CardStage {
-        override fun progress(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
+        override fun progress(apdu: ByteArray?, extras: Bundle?): Pair<ByteArray, CardStage> {
             TODO("Not yet implemented")
         }
     }
+
+    // functions needed for crypto
+    // -----------------------------------------------------------
+    fun encrypt(key: ByteArray, value: ByteArray): ByteArray {
+        val secretKey = SecretKeySpec(key, "DESede")
+        val cipher = Cipher.getInstance("DESede/CBC/NoPadding")
+        val encIv = IvParameterSpec(ByteArray(8), 0, 8)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, encIv)
+        return cipher.doFinal(value)
+    }
+
+    fun decrypt(key: ByteArray, value: ByteArray): ByteArray {
+        val secretKey = SecretKeySpec(key, "DESede")
+        val cipher = Cipher.getInstance("DESede/CBC/NoPadding")
+        val encIv = IvParameterSpec(ByteArray(8), 0, 8)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, encIv)
+        return cipher.doFinal(value)
+    }
+
+    fun ByteArray.leftShift(d: Int): ByteArray {
+        val newList = this.copyOf()
+        var shift = d
+        if (shift > size) shift %= size
+        forEachIndexed { index, value ->
+            val newIndex = (index + (size - shift)) % size
+            newList[newIndex] = value
+        }
+        return newList
+    }
+    // -----------------------------------------------------------
 }
 
 interface CardStage {
-    fun progress(apdu: ByteArray?, extras: Bundle?): ByteArray
+    fun progress(apdu: ByteArray?, extras: Bundle?): Pair<ByteArray, CardStage>
 }
 
-
-// first and default stage of the card
-// an iso select application is expected here
-// the unique ascii card id will be returned
-
-
-//default, selected, prePhase1, prePhase2
