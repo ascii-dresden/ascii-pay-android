@@ -1,10 +1,16 @@
 package org.ascii.asciiPayCompanion
 
+import android.content.ComponentName
+import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import org.ascii.asciiPayCompanion.Utils.Companion.hexStringToByteArray
 
 class HostCardEmulatorService : HostApduService() {
+    init{
+        // TODO init Card object
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -13,33 +19,15 @@ class HostCardEmulatorService : HostApduService() {
 
     }
 
-    override fun onStartCommand(){
-        // TODO init card
-    }
 
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         if (commandApdu == null) {
-            Log.e(TAG, "Command APDU gotten from Android is null!")
-            return Utils.hexStringToByteArray(STATUS_FAILED)
-        }
-
-
-        val hexCommandApdu = Utils.toHex(commandApdu)
-        Log.e(TAG, "apdu command:\n" + hexCommandApdu)
-
-        return Utils.hexStringToByteArray("4242133700")
-
-        if (hexCommandApdu.length < MIN_APDU_LENGTH) {
-            return Utils.hexStringToByteArray(STATUS_FAILED)
-        }
-
-        if (hexCommandApdu.substring(0, 2) != DEFAULT_CLA) {
-            return Utils.hexStringToByteArray(CLA_NOT_SUPPORTED)
-        }
+            Log.e(Utils.TAG, "Apdu received by the system is null")
+            return Utils.STATUS_FAILED
 
     }
 
     override fun onDeactivated(reason: Int) {
-        Log.d(TAG, "Deactivated: " + reason)
+        Log.d(Utils.TAG, "Deactivated: $reason")
     }
 }

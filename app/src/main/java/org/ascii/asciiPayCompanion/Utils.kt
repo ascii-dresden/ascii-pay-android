@@ -5,7 +5,7 @@ class Utils {
     companion object {
         val TAG = "ascii Card Emulator"
         val STATUS_SUCCESS = "9000"
-        val STATUS_FAILED = "6F00"
+        val STATUS_FAILED = hexStringToByteArray("6F00")
         val CLA_NOT_SUPPORTED = "6E00"
         val INS_NOT_SUPPORTED = "6D00"
         val AID = "C0FFEE"
