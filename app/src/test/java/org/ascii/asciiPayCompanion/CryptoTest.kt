@@ -2,11 +2,9 @@ package org.ascii.asciiPayCompanion
 
 import android.os.Bundle
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
-import org.junit.Test
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
-import java.lang.reflect.Type
-import kotlin.reflect.typeOf
+import org.junit.Test
 
 class CryptoTest {
 
