@@ -8,7 +8,7 @@ import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 
 class HostCardEmulatorService : HostApduService() {
 
-    lateinit var card : Card
+    lateinit var card: Card
 
     override fun onCreate() {
         super.onCreate()
@@ -34,7 +34,6 @@ class HostCardEmulatorService : HostApduService() {
         card = Card(id, key)
         return super.onStartCommand(intent, flags, startId)
     }
-
 
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         if (commandApdu == null) {

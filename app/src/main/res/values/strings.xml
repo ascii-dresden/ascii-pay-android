@@ -5,4 +5,6 @@
 
     <string name="hceUnavailableTitle">Unsupported Device</string>>
     <string name="hceUnavailableMessage">This device does not support virtual Ascii Cards.</string>>
+    <string name="cardTextInfo">Name and Card Number</string>
+    <string name="cardItem">Visual card representation</string>
 </resources>
