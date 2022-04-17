@@ -1,11 +1,9 @@
 package org.ascii.asciiPayCompanion
 
-import android.content.ComponentName
-import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
-import org.ascii.asciiPayCompanion.Utils.Companion.hexStringToByteArray
+import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 
 class HostCardEmulatorService : HostApduService() {
     init{
@@ -23,8 +21,9 @@ class HostCardEmulatorService : HostApduService() {
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         if (commandApdu == null) {
             Log.e(Utils.TAG, "Apdu received by the system is null")
-            return Utils.STATUS_FAILED
-
+            return toByteArray(Utils.STATUS_FAILED)
+        }
+        return TODO("Card not implemented yet")
     }
 
     override fun onDeactivated(reason: Int) {

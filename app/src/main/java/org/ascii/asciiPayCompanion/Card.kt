@@ -2,6 +2,7 @@ package org.ascii.asciiPayCompanion
 
 import android.os.Bundle
 import android.util.Log
+import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -12,11 +13,13 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     private var stage : CardStage = DefaultStage()
 
     companion object {
-        val H10 = Utils.hexStringToByteArray("10")
+        val H10 = Utils.toByteArray("10")
     }
 
     init {
-        if (id.size != 8) Log.e(Utils.TAG, "Card id is malformed: " + Utils.toHex(id))
+        if (id.size != 8){
+            //Log.e(Utils.TAG, "Card id is malformed: " + Utils.toHex(id))
+        }
     }
 
     // the apdu will be forwarded to this function
@@ -36,10 +39,10 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     Response: card id [8 Byte]
     "00 00 00 00 00 00 00 00"
     */
-    inner class DefaultStage : CardStage {
+    private inner class DefaultStage : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // TODO check request format
-            if (false) return Pair(Utils.STATUS_FAILED, this)
+            if (false) return Pair(toByteArray(Utils.STATUS_FAILED), this)
             // return the id
             return Pair(id, Phase1Stage())
         }
@@ -53,11 +56,11 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     "00 00 00 00 00 00 00 00 00"
     "01"
     */
-    inner class Phase1Stage : CardStage {
+    private inner class Phase1Stage : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // check request format
             if (!apdu.contentEquals(H10))
-                return Utils.STATUS_FAILED to DefaultStage()
+                return toByteArray(Utils.STATUS_FAILED) to DefaultStage()
 
             // Generate client challenge
             val rndB = Random.nextBytes(8)
@@ -77,7 +80,7 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     "00 00 00 00 00 00 00 00 00"
     "01"
     */
-    inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
+    private inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // TODO check request format
             return authPhase2(secretKey, rndB, apdu) to DefaultStage()
