@@ -11,7 +11,7 @@ import kotlin.random.Random
 
 
 class Card(private val id: ByteArray, private val secretKey: ByteArray) {
-    private var stage : CardStage = DefaultStage()
+    var stage : CardStage = DefaultStage()
 
     companion object {
         val H10 = byteArrayOf(0x10)
@@ -30,6 +30,10 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
         return ret
     }
 
+    fun reset(){
+        stage = DefaultStage()
+    }
+
     /*
     first and default stage of the card
     an iso select application is expected here
@@ -40,12 +44,12 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     Response: card id [8 Byte]
     "00 00 00 00 00 00 00 00"
     */
-    private inner class DefaultStage : CardStage {
+    inner class DefaultStage : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // TODO check request format
             if (false) return Pair(toByteArray(Utils.STATUS_FAILED), this)
             // return the id
-            return Pair(id, Phase1Stage())
+            return Pair(id, Phase1Stage(null))
         }
     }
 
@@ -57,14 +61,14 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     "00 00 00 00 00 00 00 00 00"
     "01"
     */
-    private inner class Phase1Stage : CardStage {
+    inner class Phase1Stage(private val rndB: ByteArray?) : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // check request format
             if (!apdu.contentEquals(H10))
                 return byteArrayOf(0x01) to DefaultStage()
 
             // Generate client challenge
-            val rndB = Random.nextBytes(8)
+            val rndB = rndB ?: Random.nextBytes(8)
             // Encrypt challenge with secret key
             val ek_rndB = encrypt(secretKey, rndB)
 
@@ -80,7 +84,7 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     "00 00 00 00 00 00 00 00 00"
     "01"
     */
-    private inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
+    inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             val result = try {
                 val bytes = authPhase2(secretKey, rndB, apdu.drop(1).toByteArray())
