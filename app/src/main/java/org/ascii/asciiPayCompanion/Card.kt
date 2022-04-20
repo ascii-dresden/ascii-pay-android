@@ -6,6 +6,7 @@ import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.experimental.xor
 import kotlin.random.Random
 
 
@@ -13,7 +14,7 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     private var stage : CardStage = DefaultStage()
 
     companion object {
-        val H10 = Utils.toByteArray("10")
+        val H10 = byteArrayOf(0x10)
     }
 
     init {
@@ -60,15 +61,14 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
             // check request format
             if (!apdu.contentEquals(H10))
-                return toByteArray(Utils.STATUS_FAILED) to DefaultStage()
+                return byteArrayOf(0x01) to DefaultStage()
 
             // Generate client challenge
             val rndB = Random.nextBytes(8)
             // Encrypt challenge with secret key
             val ek_rndB = encrypt(secretKey, rndB)
 
-            // TODO return the correct challenge
-            return Pair(ek_rndB, Phase2Stage(rndB))
+            return Pair(byteArrayOf(0x00) + ek_rndB, Phase2Stage(rndB))
         }
     }
 
@@ -82,15 +82,18 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
     */
     private inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
-            // TODO check request format
-            return authPhase2(secretKey, rndB, apdu) to DefaultStage()
-            // TODO does the request needs to be sliced here?
-
+            val result = try {
+                val bytes = authPhase2(secretKey, rndB, apdu.drop(1).toByteArray())
+                byteArrayOf(0x00) + bytes
+            } catch (e: Exception) {
+                byteArrayOf(0x01)
+            }
+            return result to DefaultStage()
         }
 
         fun authPhase2(key: ByteArray, rndB: ByteArray, dk_rndA_rndBshifted: ByteArray): ByteArray {
             // Decrypt server request
-            val rndA_rndBshifted = encrypt(key, dk_rndA_rndBshifted)
+            val rndA_rndBshifted = decrypt(key, dk_rndA_rndBshifted)
 
             // Split server request in client challenge response and server challenge
             val rndA = rndA_rndBshifted.sliceArray(0..7)
@@ -98,7 +101,7 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
 
             // Verify client challenge response
             if (!rndBshifted.contentEquals(rndB.leftShift(1))) {
-                return byteArrayOf()
+                throw Error("Client challenge failed!")
             }
 
             // Generate server challenge response
@@ -111,12 +114,56 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
 
     // functions needed for crypto
     // -----------------------------------------------------------
+
+    fun tdesEncryptBlock(key: ByteArray, value: ByteArray): ByteArray {
+        val secretKey1 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
+        val secretKey2 = SecretKeySpec(key.sliceArray(8 until 16), "DES")
+        val secretKey3 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
+
+        val cipher1 = Cipher.getInstance("DES/ECB/NoPadding")
+        val cipher2 = Cipher.getInstance("DES/ECB/NoPadding")
+        val cipher3 = Cipher.getInstance("DES/ECB/NoPadding")
+
+        cipher1.init(Cipher.ENCRYPT_MODE, secretKey1)
+        val enc1 = cipher1.doFinal(value)
+        cipher2.init(Cipher.DECRYPT_MODE, secretKey2)
+        val enc2 = cipher2.doFinal(enc1)
+        cipher3.init(Cipher.ENCRYPT_MODE, secretKey3)
+        val enc3 = cipher3.doFinal(enc2)
+
+        return enc3
+    }
+
     fun encrypt(key: ByteArray, value: ByteArray): ByteArray {
-        val secretKey = SecretKeySpec(key, "DESede")
-        val cipher = Cipher.getInstance("DESede/CBC/NoPadding")
-        val encIv = IvParameterSpec(ByteArray(8), 0, 8)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, encIv)
-        return cipher.doFinal(value)
+        var buffer = ByteArray(8)
+        var result = ByteArray(0)
+
+        for (block in value.toList().chunked(8)) {
+            val blockArray = block.toByteArray()
+            val xorArray = blockArray.xor(buffer)
+            val enc = tdesEncryptBlock(key, xorArray)
+
+            buffer = enc
+            result += enc
+        }
+
+        return result
+    }
+
+    fun decrypt(key: ByteArray, value: ByteArray): ByteArray {
+        var buffer = ByteArray(8)
+        var result = ByteArray(0)
+
+        for (block in value.toList().chunked(8)) {
+            val blockArray = block.toByteArray()
+            val enc = tdesEncryptBlock(key, blockArray)
+            val xorArray = enc.xor(buffer)
+
+            buffer = blockArray
+            result += xorArray
+        }
+
+        return result
     }
 
     fun ByteArray.leftShift(d: Int): ByteArray {
@@ -128,6 +175,12 @@ class Card(private val id: ByteArray, private val secretKey: ByteArray) {
             newList[newIndex] = value
         }
         return newList
+    }
+
+    fun ByteArray.xor(other: ByteArray): ByteArray {
+        if (size != other.size) throw Error("Array sizes!")
+
+        return zip(other).map { (a, b) -> a.xor(b) }.toByteArray()
     }
     // -----------------------------------------------------------
 }
