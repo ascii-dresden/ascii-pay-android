@@ -12,12 +12,7 @@ class HostCardEmulatorService : HostApduService() {
 
     override fun onCreate() {
         super.onCreate()
-        // TODO replace this method with proper way of instantiating the card data
-        val cardSP = getSharedPreferences("card", MODE_PRIVATE)
-        val cardEditor = cardSP.edit()
-        cardEditor.putString("id", "AFFE1337C0FFEE00")
-        cardEditor.putString("key", "7665165AADE654654AACC112131415161718192021222324")
-        cardEditor.apply()
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

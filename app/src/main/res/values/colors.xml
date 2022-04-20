@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="text_background">#6CFFFFFF</color>>
+    <color name="add_card">#898989FF</color>>
 </resources>

@@ -7,4 +7,6 @@
     <string name="hceUnavailableMessage">This device does not support virtual Ascii Cards.</string>>
     <string name="cardTextInfo">Name and Card Number</string>
     <string name="cardItem">Visual card representation</string>
+    <string name="visualCardFormat">%1s\n%2s</string>
+    <string name="addCard">Add Card</string>
 </resources>

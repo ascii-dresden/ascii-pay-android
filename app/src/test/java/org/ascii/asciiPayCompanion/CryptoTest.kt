@@ -9,7 +9,7 @@ import org.junit.Test
 class CryptoTest {
 
     val testId = toByteArray("C0FFE144")
-    val card = Card(testId, ByteArray(24))
+    val card = Card(testId, toByteArray("5AB7B5B41110B90273EA816751E41D88"))
 
     val stateField = card.javaClass.getDeclaredField("stage")
     lateinit var cardStage : CardStage

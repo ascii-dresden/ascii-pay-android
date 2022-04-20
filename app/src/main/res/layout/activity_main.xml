@@ -7,9 +7,10 @@
     tools:context=".MainActivity">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="360dp"
+        android:layout_height="245dp"
         android:layout_margin="20dp"
+        android:visibility="visible"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="20dp"
         app:cardElevation="5dp"
@@ -20,14 +21,12 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="360dp"
-            android:layout_height="245dp"
-            android:layout_marginTop="-10dp"
-            android:layout_marginBottom="-10dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:contentDescription="@string/cardItem"
             android:scaleType="centerInside"
-            android:scaleX="1.05"
-            android:scaleY="1.05"
+            android:scaleX="1.06"
+            android:scaleY="1.08"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -35,9 +34,9 @@
             app:srcCompat="@drawable/card_preview" />
 
         <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="268dp"
-            android:layout_height="46dp"
+            android:id="@+id/holderInfoArea"
+            android:layout_width="260dp"
+            android:layout_height="47dp"
             android:contentDescription="@string/cardItem"
             android:translationX="15dp"
             android:translationY="175dp"
@@ -55,6 +54,45 @@
             android:translationY="180dp"
             android:typeface="normal"
             tools:text="Max Mustermann\n1234 1234 1234 1337" />
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/addCardPreview"
+        android:layout_width="360dp"
+        android:layout_height="245dp"
+        android:layout_margin="20dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="20dp"
+        app:cardUseCompatPadding="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/AddCardPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="-10dp"
+            android:layout_marginBottom="-10dp"
+            android:contentDescription="@string/cardItem"
+            android:scaleType="centerInside"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_add_card" />
+
+        <TextView
+            android:id="@+id/AddCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:text="@string/addCard"
+            android:textAlignment="center"
+            android:textSize="34sp"
+            android:translationY="130dp" />
 
     </androidx.cardview.widget.CardView>
 
