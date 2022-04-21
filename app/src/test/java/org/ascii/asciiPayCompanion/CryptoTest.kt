@@ -2,6 +2,7 @@ package org.ascii.asciiPayCompanion
 
 import android.os.Bundle
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -13,14 +14,11 @@ class CryptoTest {
     val testId = toByteArray("C0FFE144")
     val card = Card(testId, toByteArray("5AB7B5B41110B90273EA816751E41D88"))
 
-    val stateField = card.javaClass.getDeclaredField("stage")
-    lateinit var cardStage : CardStage
-
-    @Before
-    fun setUpCard() {
-        stateField.isAccessible = true
-        cardStage = stateField.get(card) as CardStage
+    @After
+    fun cleanUp(){
+        card.reset()
     }
+
 
     /*
     * Test Case:
@@ -63,11 +61,11 @@ class CryptoTest {
         //stateField.set(card, card.Phase1Stage(toByteArray("CF62E7B53ED842CB")))
         val s2Response = card.interact(toByteArray("10"), Bundle())
         // TODO make this not failing
-        assertEquals("Phase 1 failed.", s2Response, toByteArray("005FC0F77858DAE66B"))
+        assertEquals("Phase 1 failed.", s2Response.toList(), toByteArray("005FC0F77858DAE66B").toList())
         assertTrue("Card is in the wrong stage.", card.stage is Card.Phase2Stage)
 
         val finalResponse = card.interact(toByteArray("11ECC195EFFC0A5A43EE03A374B30E7764"), Bundle())
-        assertEquals("Phase 2 failed", finalResponse, toByteArray("0004F63553A119E9CF"))
+        assertEquals("Phase 2 failed", finalResponse.toList(), toByteArray("0004F63553A119E9CF").toList())
         assertTrue("Card is in the wrong stage.", card.stage is Card.DefaultStage)
 
     }
