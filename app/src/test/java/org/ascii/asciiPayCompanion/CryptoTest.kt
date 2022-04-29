@@ -3,11 +3,8 @@ package org.ascii.asciiPayCompanion
 import android.os.Bundle
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Assert.*
 import org.junit.Test
-import kotlin.reflect.typeOf
 
 class CryptoTest {
 
@@ -15,7 +12,7 @@ class CryptoTest {
     val card = Card(testId, toByteArray("5AB7B5B41110B90273EA816751E41D88"))
 
     @After
-    fun cleanUp(){
+    fun cleanUp() {
         card.reset()
     }
 
@@ -51,22 +48,67 @@ class CryptoTest {
     * SessionKey: 0F D9 E6 F7 CF 62 E7 B5 EB 7E 1B D9 3E D8 42 CB
     */
     @Test
-    fun successfulInteractionTest(){
+    fun successfulInteractionTest() {
         val s1Response = card.interact(toByteArray("00A4000007F0000000C0FFEE"), Bundle())
-        assertEquals("AID Selection failed", s1Response, testId)
         assertTrue("Card is in the wrong stage.", card.stage is Card.Phase1Stage)
+        assertEquals("AID Selection failed", testId.toList(), s1Response.toList())
 
         // use the crypt value from our test case
         card.stage = card.Phase1Stage(toByteArray("CF62E7B53ED842CB"))
-        //stateField.set(card, card.Phase1Stage(toByteArray("CF62E7B53ED842CB")))
         val s2Response = card.interact(toByteArray("10"), Bundle())
-        // TODO make this not failing
-        assertEquals("Phase 1 failed.", s2Response.toList(), toByteArray("005FC0F77858DAE66B").toList())
+        assertEquals(
+            "Phase 1 failed.",
+            toByteArray("005FC0F77858DAE66B").toList(),
+            s2Response.toList()
+        )
         assertTrue("Card is in the wrong stage.", card.stage is Card.Phase2Stage)
 
-        val finalResponse = card.interact(toByteArray("11ECC195EFFC0A5A43EE03A374B30E7764"), Bundle())
-        assertEquals("Phase 2 failed", finalResponse.toList(), toByteArray("0004F63553A119E9CF").toList())
+        val s3Response = card.interact(toByteArray("11ECC195EFFC0A5A43EE03A374B30E7764"), Bundle())
+        assertEquals(
+            "Phase 2 failed",
+            toByteArray("0004F63553A119E9CF").toList(),
+            s3Response.toList()
+        )
         assertTrue("Card is in the wrong stage.", card.stage is Card.DefaultStage)
 
+    }
+
+    @Test
+    fun malformedRequestsTest() {
+        // testing the first stage
+        val s1Response = card.interact(toByteArray("20A4000007F0000000C0FFEE"), Bundle())
+        assertTrue("Card didn't reset, despite malformed request.", card.stage is Card.DefaultStage)
+        assertEquals(
+            "Card didn't gave an error code, despite a malformed request.",
+            toByteArray("01").toList(),
+            s1Response.toList()
+        )
+
+        card.stage = card.Phase1Stage(null)
+        val s2Response = card.interact(toByteArray("00"), Bundle())
+        assertTrue("Card didn't reset, despite malformed request.", card.stage is Card.DefaultStage)
+        assertEquals(
+            "Card didn't gave an error code, despite a malformed request.",
+            toByteArray("01").toList(),
+            s2Response.toList()
+        )
+
+        card.stage = card.Phase2Stage(toByteArray("CF62E7B53ED842CB"))
+        val s3Response01 = card.interact(toByteArray("1000000000000000000000000000000000"), Bundle())
+        assertTrue("Card didn't reset, despite malformed request.", card.stage is Card.DefaultStage)
+        assertEquals(
+            "Card didn't gave an error code, despite a malformed request.",
+            toByteArray("01").toList(),
+            s3Response01.toList()
+        )
+
+        card.stage = card.Phase2Stage(toByteArray("CF62E7B53ED842CB"))
+        val s3Response02 = card.interact(toByteArray("0000000000000000000000000000000000"), Bundle())
+        assertTrue("Card didn't reset, despite malformed request.", card.stage is Card.DefaultStage)
+        assertEquals(
+            "Card didn't gave an error code, despite a malformed request.",
+            toByteArray("01").toList(),
+            s3Response02.toList()
+        )
     }
 }

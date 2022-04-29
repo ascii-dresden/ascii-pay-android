@@ -7,17 +7,18 @@
     tools:context=".MainActivity">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardVisual"
         android:layout_width="360dp"
         android:layout_height="245dp"
         android:layout_margin="20dp"
-        android:visibility="visible"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="20dp"
         app:cardElevation="5dp"
         app:cardUseCompatPadding="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/imageView"
@@ -63,11 +64,11 @@
         android:layout_margin="20dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
         app:cardUseCompatPadding="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:cardElevation="0dp">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/AddCardPreview"

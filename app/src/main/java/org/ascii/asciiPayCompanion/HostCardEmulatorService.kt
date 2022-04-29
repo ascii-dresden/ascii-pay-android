@@ -8,25 +8,13 @@ import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 
 class HostCardEmulatorService : HostApduService() {
 
-    lateinit var card: Card
+    val card = Card(this)
 
     override fun onCreate() {
         super.onCreate()
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val cardSP = getSharedPreferences("card", MODE_PRIVATE)
-        // check that everything exists
-        if (!cardSP.contains("id") || !cardSP.contains("key")) {
-            Log.e(Utils.TAG, "No Card data found. Exiting...")
-            stopSelf()
-            // TODO decide how to handle this situation
-        }
-        // Converting to non nullable because existence has been asserted above
-        val id = toByteArray(cardSP.getString("id", null)!!)
-        val key = toByteArray(cardSP.getString("key", null)!!)
-        card = Card(id, key)
         return super.onStartCommand(intent, flags, startId)
     }
 
