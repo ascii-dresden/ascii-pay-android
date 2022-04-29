@@ -98,7 +98,7 @@ class Card(service: HostCardEmulatorService) {
                 // set card key
                 if (apdu.size != 17) {
                     Log.e(Utils.TAG, "Error: Init card request has the wrong size.")
-                    return H01 to this
+                    return H01 to DefaultStage()
                 }
                 // write new key to storage
                 val key = apdu.slice(1..16)
