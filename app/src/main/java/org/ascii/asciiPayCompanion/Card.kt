@@ -13,16 +13,24 @@ import kotlin.random.Random
 
 
 class Card(service: HostCardEmulatorService) {
-    var stage: CardStage = DefaultStage()
+    var stage: CardStage = defaultStage()
     val sp: SharedPreferences = service.getSharedPreferences("card", HostApduService.MODE_PRIVATE)
     val cardSPListener = CardSPListener()
 
     val id: ByteArray
-    val key: ByteArray
+    var key: ByteArray
 
     companion object {
         val H10 = byteArrayOf(0x10)
         val H01 = byteArrayOf(0x01)
+    }
+
+    private fun defaultStage(): CardStage{
+        return Phase1Stage(null)
+    }
+
+    fun reset(){
+        stage = defaultStage()
     }
 
     init {
@@ -44,7 +52,9 @@ class Card(service: HostCardEmulatorService) {
 
     inner class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
         override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
-            // TODO add dynamic listener for changes of the card sp
+            sp.getString(name, null)?.let {
+                key = toByteArray(it)
+            } ?: Log.e(Utils.TAG, "key attribute was unset!")
         }
     }
 
@@ -53,33 +63,25 @@ class Card(service: HostCardEmulatorService) {
         if (apdu.isEmpty()) {
             return H01
         }
+        /*
+        first and default stage of the card
+        an iso select application is expected here
+        the unique ascii card id will be returned
+
+        Request: ISO SELECT FILE with AID F0 00 00 00 C0 FF EE
+        "00 A4 00 00 07 F0 00 00 00 C0 FF EE"
+        Response: card id [8 Byte]
+        "00 00 00 00 00 00 00 00"
+        */
+        if (apdu.toList() == toByteArray("00A4040007F0000000C0FFEE").toList()) {
+            this.stage = defaultStage()
+            // return the id
+            return byteArrayOf(0x00) + id
+        }
+
         val (ret, stage) = stage.progress(apdu, extras)
         this.stage = stage
         return ret
-    }
-
-    fun reset() {
-        stage = DefaultStage()
-    }
-
-    /*
-    first and default stage of the card
-    an iso select application is expected here
-    the unique ascii card id will be returned
-
-    Request: ISO SELECT FILE with AID F0 00 00 00 C0 FF EE
-    "00 A4 00 00 07 F0 00 00 00 C0 FF EE"
-    Response: card id [8 Byte]
-    "00 00 00 00 00 00 00 00"
-    */
-    inner class DefaultStage : CardStage {
-        override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
-            // TODO do we need more checks?
-            if (apdu.toList() != toByteArray("00A4000007F0000000C0FFEE").toList())
-                return H01 to this
-            // return the id
-            return Pair(id, Phase1Stage(null))
-        }
     }
 
     /*
@@ -98,20 +100,20 @@ class Card(service: HostCardEmulatorService) {
                 // set card key
                 if (apdu.size != 17) {
                     Log.e(Utils.TAG, "Error: Init card request has the wrong size.")
-                    return H01 to DefaultStage()
+                    return H01 to defaultStage()
                 }
                 // write new key to storage
                 val key = apdu.slice(1..16)
                 val cardEditor = sp.edit()
                 cardEditor.putString("key", toHex(key.toByteArray()))
                 cardEditor.apply()
-                return byteArrayOf(0x00) to DefaultStage()
+                return byteArrayOf(0x00) to defaultStage()
             }
 
             // 2. case: authentication
             // check request format
             if (!apdu.contentEquals(H10))
-                return H01 to DefaultStage()
+                return H01 to defaultStage()
 
             // Generate client challenge
             val rndB = rndB ?: Random.nextBytes(8)
@@ -138,7 +140,7 @@ class Card(service: HostCardEmulatorService) {
             } catch (e: Exception) {
                 H01
             }
-            return result to DefaultStage()
+            return result to defaultStage()
         }
 
         fun authPhase2(key: ByteArray, rndB: ByteArray, dk_rndA_rndBshifted: ByteArray): ByteArray {

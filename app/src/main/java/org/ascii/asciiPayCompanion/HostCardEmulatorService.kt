@@ -5,12 +5,13 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
+import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 
 class HostCardEmulatorService : HostApduService() {
 
-    val card = Card(this)
-
+    var card : Card? = null
     override fun onCreate() {
+        card = Card(this)
         super.onCreate()
     }
 
@@ -23,7 +24,9 @@ class HostCardEmulatorService : HostApduService() {
             Log.e(Utils.TAG, "Apdu received by the system is null")
             return toByteArray(Utils.STATUS_FAILED)
         }
-        return card.interact(commandApdu, extras)
+        Log.e(Utils.TAG, toHex(commandApdu))
+        Log.e(Utils.TAG, "card: " + (card!=null))
+        return card?.interact(commandApdu, extras) ?: byteArrayOf()
     }
 
     override fun onDeactivated(reason: Int) {

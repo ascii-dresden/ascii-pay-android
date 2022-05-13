@@ -6,6 +6,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
 
+/*
 class CryptoTest {
 
     val testId = toByteArray("C0FFE144")
@@ -112,3 +113,4 @@ class CryptoTest {
         )
     }
 }
+*/

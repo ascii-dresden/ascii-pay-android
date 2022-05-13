@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             {_, _ -> })
             alertDialog.show()
         }
-        createDummyCard()
+        // createDummyCard()
 
         // visual representation of the card
         val cardSP = getSharedPreferences("card", MODE_PRIVATE)
