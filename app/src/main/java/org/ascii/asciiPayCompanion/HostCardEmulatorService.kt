@@ -24,9 +24,10 @@ class HostCardEmulatorService : HostApduService() {
             Log.e(Utils.TAG, "Apdu received by the system is null")
             return toByteArray(Utils.STATUS_FAILED)
         }
-        Log.e(Utils.TAG, toHex(commandApdu))
-        Log.e(Utils.TAG, "card: " + (card!=null))
-        return card?.interact(commandApdu, extras) ?: byteArrayOf()
+        Log.e(Utils.TAG, "APDU will be processed: " + toHex(commandApdu))
+        val ret = card?.interact(commandApdu, extras) ?: byteArrayOf()
+        Log.e(Utils.TAG, "Returning payload: " + toHex(ret))
+        return ret
     }
 
     override fun onDeactivated(reason: Int) {

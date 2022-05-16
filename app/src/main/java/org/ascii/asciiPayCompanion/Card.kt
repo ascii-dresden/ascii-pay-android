@@ -37,6 +37,7 @@ class Card(service: HostCardEmulatorService) {
         // check that everything exists
         if (!sp.contains("id") || !sp.contains("key")) {
             Log.e(Utils.TAG, "No Card data found. Exiting...")
+            // maybe we should delete the card here
             service.stopSelf()
             // TODO decide how to handle this situation
         }
@@ -53,8 +54,9 @@ class Card(service: HostCardEmulatorService) {
     inner class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
         override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
             sp.getString(name, null)?.let {
+                Log.e(Utils.TAG, "Using the new key '$key'")
                 key = toByteArray(it)
-            } ?: Log.e(Utils.TAG, "key attribute was unset!")
+            } ?: Log.e(Utils.TAG, "Invalid key received!")
         }
     }
 
@@ -74,6 +76,7 @@ class Card(service: HostCardEmulatorService) {
         "00 00 00 00 00 00 00 00"
         */
         if (apdu.toList() == toByteArray("00A4040007F0000000C0FFEE").toList()) {
+            Log.e(Utils.TAG, "Got aid select instruction; sending card id: $id")
             this.stage = defaultStage()
             // return the id
             return byteArrayOf(0x00) + id
@@ -97,6 +100,7 @@ class Card(service: HostCardEmulatorService) {
             // 1. case: adding a new key
             // format checking
             if (apdu[0] == 0x20.toByte()) {
+                Log.e(Utils.TAG, "Starting key initialization")
                 // set card key
                 if (apdu.size != 17) {
                     Log.e(Utils.TAG, "Error: Init card request has the wrong size.")
@@ -107,14 +111,18 @@ class Card(service: HostCardEmulatorService) {
                 val cardEditor = sp.edit()
                 cardEditor.putString("key", toHex(key.toByteArray()))
                 cardEditor.apply()
+                Log.e(Utils.TAG, "Key initialization complete!")
                 return byteArrayOf(0x00) to defaultStage()
             }
 
             // 2. case: authentication
             // check request format
-            if (!apdu.contentEquals(H10))
+            if (apdu.firstOrNull() != 0x10.toByte()) {
+                Log.e(Utils.TAG, "Error: Invalid request")
                 return H01 to defaultStage()
+            }
 
+            Log.e(Utils.TAG, "Starting Authentication...")
             // Generate client challenge
             val rndB = rndB ?: Random.nextBytes(8)
             // Encrypt challenge with secret key
