@@ -142,10 +142,13 @@ class Card(service: HostCardEmulatorService) {
     */
     inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
         override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
+            Log.e(Utils.TAG, "Authentication Phase 2")
             val result = try {
+                // TODO use apdu.drop everywhere
                 val bytes = authPhase2(key, rndB, apdu.drop(1).toByteArray())
                 byteArrayOf(0x00) + bytes
             } catch (e: Exception) {
+                Log.e(Utils.TAG, "Error: Malformed key")
                 H01
             }
             return result to defaultStage()
@@ -161,8 +164,8 @@ class Card(service: HostCardEmulatorService) {
 
             // Verify client challenge response
             if (!rndBshifted.contentEquals(rndB.leftShift(1))) {
-                // TODO this doesn't get caught
-                throw Error("Client challenge failed!")
+                Log.e(Utils.TAG, "Error: Client challenge failed!")
+                throw Error()
             }
 
             // Generate server challenge response
