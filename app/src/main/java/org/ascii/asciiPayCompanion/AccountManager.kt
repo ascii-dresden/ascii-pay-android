@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlin.properties.Delegates
 
 class AccountManager (mainContext: Context){
-
     private val cardSP = mainContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
     lateinit var session_token : String
     var accountListenerList = ArrayList<AccountUser>()
@@ -14,23 +13,17 @@ class AccountManager (mainContext: Context){
             _, _, newValue ->
         accountListenerList.forEach {it.onAccountChange(newValue)}
     }
+
     init {
         cardSP.registerOnSharedPreferenceChangeListener(CardSPListener())
     }
 
-    fun init_session() {
+    fun initSession() {
         TODO()
     }
 
-    fun end_session() {
+    fun endSession() {
         TODO()
-    }
-
-    fun get_account_data() {
-        TODO()
-    }
-    fun get_card_key(){
-
     }
 
 
@@ -58,5 +51,14 @@ class AccountManager (mainContext: Context){
         override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
 
         }
+    }
+
+    private fun createDummyCard() {
+        // TODO replace this method with proper way of instantiating the card data
+        val cardEditor = cardSP.edit()
+        cardEditor.putString("id", "AFFE1337C0FFEE00")
+        cardEditor.putString("key", "7665165AADE654654AACC112131415161718192021222324")
+        cardEditor.putString("full_name", "Peter Zwegat")
+        cardEditor.apply()
     }
 }
