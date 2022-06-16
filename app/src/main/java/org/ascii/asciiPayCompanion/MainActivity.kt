@@ -26,9 +26,12 @@ class MainActivity : AppCompatActivity() {
             {_, _ -> })
             alertDialog.show()
         }
-        // createDummyCard()
-        val cardText = findViewById<TextView>(R.id.cardInformation)
-        cardText.text = getString(R.string.visualCardFormat, , cardId)
+
+        // decide whether to show a virtual representation of the card
+
+            val cardText = findViewById<TextView>(R.id.cardInformation)
+            cardText.text = getString(R.string.visualCardFormat, , cardId)
+
         }
 
     }
