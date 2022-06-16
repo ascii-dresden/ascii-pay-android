@@ -12,15 +12,15 @@ import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
 
 class MainActivity : AppCompatActivity() {
-    val cardView: CardView? = findViewById(R.id.cardVisual)
-    private val accountManager = AccountManager(this)
+    private lateinit var accountManager : AccountManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.e("Ascii Companion App", "Starting up!")
 
-        val hasNFC = this.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)
+        val pm = this.packageManager
+        val hasNFC = pm.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)
         if (!hasNFC) {
             val alertDialog = AlertDialog.Builder(this)
             alertDialog.setTitle(resources.getString(R.string.hceUnavailableTitle))
@@ -32,11 +32,13 @@ class MainActivity : AppCompatActivity() {
 
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
+        accountManager = AccountManager(this)
         accountManager.registerAccountUser(AccountListener())
     }
 
     inner class AccountListener : AccountUser{
         override fun onAccountChange(account: Account?) {
+            val cardView: CardView? = findViewById(R.id.cardVisual)
             account?.let { account ->
                 cardView?.let {
                     cardView.visibility = View.VISIBLE
