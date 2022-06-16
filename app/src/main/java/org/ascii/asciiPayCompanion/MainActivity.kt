@@ -27,20 +27,9 @@ class MainActivity : AppCompatActivity() {
             alertDialog.show()
         }
         // createDummyCard()
-
-        // TODO card creation
-        // TODO on change listener
-        // visual representation of the card
-        val cardSP = getSharedPreferences("card", MODE_PRIVATE)
-        val fullName = cardSP.getString("full_name", null)
-        val cardId = cardSP.getString("id", null)
-        val cardKey = cardSP.getString("key", null)
-        if(fullName!=null && cardId!=null){
-            val cardText = findViewById<TextView>(R.id.cardInformation)
-            cardText.text = getString(R.string.visualCardFormat, fullName, cardId)
+        val cardText = findViewById<TextView>(R.id.cardInformation)
+        cardText.text = getString(R.string.visualCardFormat, , cardId)
         }
-        // TODO replace Log.e where appropriate
-        Log.e(Utils.TAG, "Card Secret: $cardKey")
 
     }
 

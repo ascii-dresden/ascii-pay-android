@@ -9,4 +9,13 @@
     <string name="cardItem">Visual card representation</string>
     <string name="visualCardFormat">%1s\n%2s</string>
     <string name="addCard">Add Card</string>
+    <string name="title_activity_ascii_login">ascii_login</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
 </resources>
