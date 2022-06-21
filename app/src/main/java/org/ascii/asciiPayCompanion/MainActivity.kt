@@ -1,6 +1,5 @@
 package org.ascii.asciiPayCompanion
 
-import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
@@ -45,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                     // decide whether to show a virtual representation of the card
                     findViewById<TextView>(R.id.cardInformation)?.let { textView ->
                         // TODO use another field than the (very technical) nfc ID
-                        val cardId = account.card_data?.id ?: String()
+                        val cardId = account.cardData?.id ?: String()
                         textView.text = getString(R.string.visualCardFormat, account.name, cardId)
                     }
                 }

@@ -1,27 +1,22 @@
 package org.ascii.asciiPayCompanion
 
-import android.content.SharedPreferences
-import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import org.ascii.asciiPayCompanion.Utils.Companion.TAG
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
-import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.xor
 import kotlin.random.Random
 
 
-class Card(service: HostCardEmulatorService) {
-    var stage: CardStage = defaultStage()
-    val sp: SharedPreferences = service.getSharedPreferences("card", HostApduService.MODE_PRIVATE)
-    val cardSPListener = CardSPListener()
+class Card(accountManager: AccountManager) {
+    private var stage: CardStage = defaultStage()
 
-    val id: ByteArray
-    var key: ByteArray
+    // if cardData is null, the Card authentication functionality is disabled
+    var cardData : CardData? = null
 
     companion object {
-        val H10 = byteArrayOf(0x10)
         val H01 = byteArrayOf(0x01)
     }
 
@@ -29,35 +24,16 @@ class Card(service: HostCardEmulatorService) {
         return Phase1Stage(null)
     }
 
-    fun reset(){
-        stage = defaultStage()
-    }
-
     init {
-        // check that everything exists
-        if (!sp.contains("id") || !sp.contains("key")) {
-            Log.e(Utils.TAG, "No Card data found. Exiting...")
-            // maybe we should delete the card here
-            service.stopSelf()
-            // TODO decide how to handle this situation
-        }
-        // Converting to non nullable because existence has been asserted above
-        id = toByteArray(sp.getString("id", null)!!)
-        key = toByteArray(sp.getString("key", null)!!)
-
-        if (id.size != 8) {
-            Log.e(Utils.TAG, "Card id is malformed: " + Utils.toHex(id))
-        }
-        sp.registerOnSharedPreferenceChangeListener(cardSPListener)
+        accountManager.registerAccountUser(AccountListener())
     }
 
-    inner class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
-        override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
-            sp.getString(name, null)?.let {
-                Log.e(Utils.TAG, "Using the new key '$key'")
-                key = toByteArray(it)
-            } ?: Log.e(Utils.TAG, "Invalid key received!")
+    inner class AccountListener : AccountUser {
+        override fun onAccountChange(account: Account?) {
+            // if the account is non null and has card data save it, otherwise set card data to null
+            cardData = account?.cardData
         }
+
     }
 
     // the apdu will be forwarded to this function
@@ -70,21 +46,29 @@ class Card(service: HostCardEmulatorService) {
         an iso select application is expected here
         the unique ascii card id will be returned
 
+        No stage progression will happen so far
+
         Request: ISO SELECT FILE with AID F0 00 00 00 C0 FF EE
         "00 A4 00 00 07 F0 00 00 00 C0 FF EE"
         Response: card id [8 Byte]
         "00 00 00 00 00 00 00 00"
         */
-        if (apdu.toList() == toByteArray("00A4040007F0000000C0FFEE").toList()) {
-            Log.e(Utils.TAG, "Got aid select instruction; sending card id: $id")
-            this.stage = defaultStage()
-            // return the id
-            return byteArrayOf(0x00) + id
-        }
+        return cardData?.let { cardData ->
+            if (apdu.toList() == toByteArray("00A4040007F0000000C0FFEE").toList()) {
+                Log.e(TAG, "Got aid select instruction; sending card id: " + cardData.id)
+                this.stage = defaultStage()
+                // return the id
+                return byteArrayOf(0x00) + cardData.id
+            }
 
-        val (ret, stage) = stage.progress(apdu, extras)
-        this.stage = stage
-        return ret
+            val (ret, stage) = stage.progress(apdu, extras, cardData)
+            this.stage = stage
+            return ret
+        } ?: let {
+            Log.e(TAG, "Please login with your account first before using the card feature.")
+            // TODO find an extra error code for the case, that there is no card
+            return H01
+        }
     }
 
     /*
@@ -96,39 +80,24 @@ class Card(service: HostCardEmulatorService) {
     "01"
     */
     inner class Phase1Stage(private val rndB: ByteArray?) : CardStage {
-        override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
-            // 1. case: adding a new key
-            // format checking
-            if (apdu[0] == 0x20.toByte()) {
-                Log.e(Utils.TAG, "Starting key initialization")
-                // set card key
-                if (apdu.size != 17) {
-                    Log.e(Utils.TAG, "Error: Init card request has the wrong size.")
-                    return H01 to defaultStage()
-                }
-                // write new key to storage
-                val key = apdu.slice(1..16)
-                val cardEditor = sp.edit()
-                cardEditor.putString("key", toHex(key.toByteArray()))
-                cardEditor.apply()
-                Log.e(Utils.TAG, "Key initialization complete!")
-                return byteArrayOf(0x00) to defaultStage()
-            }
-
-            // 2. case: authentication
+        override fun progress(
+            apdu: ByteArray,
+            extras: Bundle?,
+            cardData: CardData
+        ): Pair<ByteArray, CardStage> {
             // check request format
             if (apdu.firstOrNull() != 0x10.toByte()) {
-                Log.e(Utils.TAG, "Error: Invalid request")
+                Log.e(TAG, "Error: Invalid request")
                 return H01 to defaultStage()
             }
 
-            Log.e(Utils.TAG, "Starting Authentication...")
+            Log.e(TAG, "Starting Authentication...")
             // Generate client challenge
             val rndB = rndB ?: Random.nextBytes(8)
             // Encrypt challenge with secret key
-            val ek_rndB = encrypt(key, rndB)
+            val ekRndb = encrypt(cardData.key, rndB)
 
-            return Pair(byteArrayOf(0x00) + ek_rndB, Phase2Stage(rndB))
+            return Pair(byteArrayOf(0x00) + ekRndb, Phase2Stage(rndB))
         }
     }
 
@@ -141,20 +110,24 @@ class Card(service: HostCardEmulatorService) {
     "01"
     */
     inner class Phase2Stage(private val rndB: ByteArray) : CardStage {
-        override fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage> {
-            Log.e(Utils.TAG, "Authentication Phase 2")
+        override fun progress(
+            apdu: ByteArray,
+            extras: Bundle?,
+            cardData: CardData
+        ): Pair<ByteArray, CardStage> {
+            Log.e(TAG, "Authentication Phase 2")
             val result = try {
                 // TODO use apdu.drop everywhere
-                val bytes = authPhase2(key, rndB, apdu.drop(1).toByteArray())
+                val bytes = authPhase2(cardData.key, rndB, apdu.drop(1).toByteArray())
                 byteArrayOf(0x00) + bytes
             } catch (e: Exception) {
-                Log.e(Utils.TAG, "Error: Malformed key")
+                Log.e(TAG, "Error: Malformed key")
                 H01
             }
             return result to defaultStage()
         }
 
-        fun authPhase2(key: ByteArray, rndB: ByteArray, dk_rndA_rndBshifted: ByteArray): ByteArray {
+        private fun authPhase2(key: ByteArray, rndB: ByteArray, dk_rndA_rndBshifted: ByteArray): ByteArray {
             // Decrypt server request
             val rndA_rndBshifted = decrypt(key, dk_rndA_rndBshifted)
 
@@ -164,7 +137,7 @@ class Card(service: HostCardEmulatorService) {
 
             // Verify client challenge response
             if (!rndBshifted.contentEquals(rndB.leftShift(1))) {
-                Log.e(Utils.TAG, "Error: Client challenge failed!")
+                Log.e(TAG, "Error: Client challenge failed!")
                 throw Error()
             }
 
@@ -179,7 +152,7 @@ class Card(service: HostCardEmulatorService) {
     // functions needed for crypto
     // -----------------------------------------------------------
 
-    fun tdesEncryptBlock(key: ByteArray, value: ByteArray): ByteArray {
+    private fun tdesEncryptBlock(key: ByteArray, value: ByteArray): ByteArray {
         val secretKey1 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
         val secretKey2 = SecretKeySpec(key.sliceArray(8 until 16), "DES")
         val secretKey3 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
@@ -241,7 +214,7 @@ class Card(service: HostCardEmulatorService) {
         return newList
     }
 
-    fun ByteArray.xor(other: ByteArray): ByteArray {
+    private fun ByteArray.xor(other: ByteArray): ByteArray {
         if (size != other.size) throw Error("Array sizes!")
 
         return zip(other).map { (a, b) -> a.xor(b) }.toByteArray()
@@ -250,6 +223,6 @@ class Card(service: HostCardEmulatorService) {
 }
 
 interface CardStage {
-    fun progress(apdu: ByteArray, extras: Bundle?): Pair<ByteArray, CardStage>
+    fun progress(apdu: ByteArray, extras: Bundle?, cardData: CardData): Pair<ByteArray, CardStage>
 }
 

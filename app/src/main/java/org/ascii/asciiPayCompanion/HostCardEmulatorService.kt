@@ -9,9 +9,10 @@ import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 
 class HostCardEmulatorService : HostApduService() {
 
-    var card : Card? = null
+    private var card : Card? = null
+    private val accountManager = AccountManager(this)
     override fun onCreate() {
-        card = Card(this)
+        card = Card(accountManager)
         super.onCreate()
     }
 
