@@ -4,12 +4,20 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.coroutineScope
+import com.apollographql.apollo3.ApolloClient
+import kotlinx.coroutines.Job
 import kotlin.properties.Delegates
 
-class AccountManager (mainContext: Context){
+class AccountManager (private val mainContext: Context, private val mainLifecycle: Lifecycle){
     private val cardSP = mainContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
-    lateinit var session_token : String
-    var accountListenerList = ArrayList<AccountUser>()
+    var sessionAuthorization : String? = null
+    private val accountListenerList = ArrayList<AccountUser>()
+    private val gqlClient = ApolloClient.Builder()
+        .serverUrl("https://pay.ascii.coffee/api/v1/graphql")
+        .build()
+
     private var account : Account? by Delegates.observable(loadAccountData()) {
             _, _, newValue ->
         accountListenerList.forEach {it.onAccountChange(newValue)}
@@ -54,6 +62,13 @@ class AccountManager (mainContext: Context){
     }
     fun saveAccountData(){
         TODO()
+    }
+
+    fun fetchAccountData() {
+        mainLifecycle.coroutineScope.launchWhenResumed {
+            val res = gqlClient.query(AccountInfoQuery()).execute()
+        }
+
     }
 
     // reload all data from disk if it changes
