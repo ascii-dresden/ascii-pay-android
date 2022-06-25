@@ -2,6 +2,9 @@ package org.ascii.asciiPayCompanion
 
 import android.os.Bundle
 import android.util.Log
+import org.ascii.asciiPayCompanion.AccountManagement.Account
+import org.ascii.asciiPayCompanion.AccountManagement.AccountDataManager
+import org.ascii.asciiPayCompanion.AccountManagement.AccountUser
 import org.ascii.asciiPayCompanion.Utils.Companion.TAG
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import javax.crypto.Cipher
@@ -10,7 +13,7 @@ import kotlin.experimental.xor
 import kotlin.random.Random
 
 
-class Card(accountManager: AccountManager) {
+class Card(accountManager: AccountDataManager) {
     private var stage: CardStage = defaultStage()
 
     // if cardData is null, the Card authentication functionality is disabled

@@ -4,13 +4,14 @@ import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import org.ascii.asciiPayCompanion.AccountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 
 class HostCardEmulatorService : HostApduService() {
 
     private var card : Card? = null
-    private val accountManager = AccountManager(this)
+    private val accountManager = AccountDataManager(this)
     override fun onCreate() {
         card = Card(accountManager)
         super.onCreate()
