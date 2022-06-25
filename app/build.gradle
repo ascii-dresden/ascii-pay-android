@@ -47,10 +47,11 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    implementation("com.apollographql.apollo3:apollo-runtime:3.3.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.0-rc02")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.3.2")
 
 }
 apollo {
     packageName.set("org.ascii.asciiPayCompanion")
+    mapScalar("UUID", "java.util.UUID", "org.ascii.asciiPayCompanion.AccountManagement.UUIDAdapter()")
 }

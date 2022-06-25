@@ -9,11 +9,12 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
-import androidx.lifecycle.coroutineScope
-import androidx.lifecycle.lifecycleScope
+import org.ascii.asciiPayCompanion.AccountManagement.Account
+import org.ascii.asciiPayCompanion.AccountManagement.AccountDataManager
+import org.ascii.asciiPayCompanion.AccountManagement.AccountUser
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var accountManager : AccountManager
+    private lateinit var accountManager : AccountDataManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,11 +34,11 @@ class MainActivity : AppCompatActivity() {
 
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
-        accountManager = AccountManager(this)
+        accountManager = AccountDataManager(this)
         accountManager.registerAccountUser(AccountListener())
     }
 
-    inner class AccountListener : AccountUser{
+    inner class AccountListener : AccountUser {
         override fun onAccountChange(account: Account?) {
             val cardView: CardView? = findViewById(R.id.cardVisual)
             account?.let { account ->
