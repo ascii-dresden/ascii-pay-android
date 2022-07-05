@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.ascii.asciiPayCompanion">
-
     <uses-permission android:name="android.permission.NFC" />
-
-    <uses-feature
-        android:name="android.hardware.nfc.hce"
+    <uses-feature android:name="android.hardware.nfc.hce"
         android:required="true" />
 
     <application
@@ -15,11 +12,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AsciiPayCard">
-        <activity
-            android:name=".ui.login.ascii_login"
-            android:exported="false"
-            android:label="@string/title_activity_ascii_login" />
-
         <service
             android:name=".HostCardEmulatorService"
             android:exported="true"
@@ -32,7 +24,6 @@
                 android:name="android.nfc.cardemulation.host_apdu_service"
                 android:resource="@xml/apduservice" />
         </service>
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
