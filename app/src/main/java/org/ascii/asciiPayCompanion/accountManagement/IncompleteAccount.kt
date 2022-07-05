@@ -28,7 +28,7 @@ class IncompleteAccount(
                 .execute()
                 .data?.login?.authorization?.let {
                     val okHttpClient = OkHttpClient.Builder()
-                        .addInterceptor(Credentials.AuthenticationInterceptor(it))
+                        .addInterceptor(AccountSession.AuthenticationInterceptor(it))
                         .build()
                     privilegedClient = ApolloClient.Builder()
                         .serverUrl(Utils.serverURL)
@@ -43,7 +43,6 @@ class IncompleteAccount(
                 // 3. If no ISO card is present create one and fetch its data
             }
         }
-    }
 
     enum class AccountCompletionError {
         InvalidCredentials,
