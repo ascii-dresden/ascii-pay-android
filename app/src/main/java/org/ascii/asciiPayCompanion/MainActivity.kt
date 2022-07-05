@@ -9,9 +9,9 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
-import org.ascii.asciiPayCompanion.AccountManagement.Account
-import org.ascii.asciiPayCompanion.AccountManagement.AccountDataManager
-import org.ascii.asciiPayCompanion.AccountManagement.AccountUser
+import org.ascii.asciiPayCompanion.accountManagement.Account
+import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
+import org.ascii.asciiPayCompanion.accountManagement.AccountUser
 
 class MainActivity : AppCompatActivity() {
     private lateinit var accountManager : AccountDataManager

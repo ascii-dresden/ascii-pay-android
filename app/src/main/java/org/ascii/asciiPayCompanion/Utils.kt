@@ -12,6 +12,7 @@ class Utils {
         val SELECT_INS = "A4"
         val DEFAULT_CLA = "00"
         val MIN_APDU_LENGTH = 12
+        val serverURL = "https://pay.ascii.coffee/api/v1/graphql"
 
         private val HEX_CHARS = "0123456789ABCDEF"
         fun toByteArray(data: String): ByteArray {
