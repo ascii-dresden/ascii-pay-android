@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
-        accountManager = AccountDataManager(this)
+        accountManager = AccountDataManager(this, lifecycle)
         accountManager.registerAccountUser(AccountListener())
     }
 

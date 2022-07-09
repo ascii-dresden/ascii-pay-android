@@ -13,7 +13,7 @@ class IncompleteAccount(
     private val password: String,
     private val lifecycle: Lifecycle,
 ) {
-    val apolloClient = ApolloClient.Builder()
+    private val apolloClient = ApolloClient.Builder()
         .serverUrl(Utils.serverURL)
         .build()
 
