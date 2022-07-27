@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
         //  which is why it is done relatively late
         accountManager = AccountDataManager(this, lifecycle)
         accountManager.registerAccountUser(AccountListener())
+
+        // create login ui for testing purposes
     }
 
     inner class AccountListener : AccountUser {
