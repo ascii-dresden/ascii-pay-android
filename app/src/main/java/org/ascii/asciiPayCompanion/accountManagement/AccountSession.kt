@@ -10,9 +10,7 @@ import com.apollographql.apollo3.exception.ApolloException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.ascii.asciiPayCompanion.LoginMutation
 import org.ascii.asciiPayCompanion.Utils
 import org.ascii.asciiPayCompanion.Utils.Companion.serverURL
 

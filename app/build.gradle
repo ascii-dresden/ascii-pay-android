@@ -53,5 +53,5 @@ dependencies {
 }
 apollo {
     packageName.set("org.ascii.asciiPayCompanion")
-    mapScalar("UUID", "java.util.UUID", "org.ascii.asciiPayCompanion.AccountManagement.UUIDAdapter()")
+    mapScalar("UUID", "java.util.UUID", "org.ascii.asciiPayCompanion.accountManagement.UUIDAdapter()")
 }
