@@ -20,4 +20,6 @@
     <string name="login_failed">"Login failed"</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="ascii_pay_login">Ascii Pay Login</string>
+    <string name="LoginOption">Login</string>
+    <string name="WrongCredentials">Username or password are incorrect. Please try again.</string>
 </resources>

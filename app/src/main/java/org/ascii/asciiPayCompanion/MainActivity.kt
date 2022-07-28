@@ -37,12 +37,16 @@ class MainActivity : AppCompatActivity() {
         accountManager = AccountDataManager(this)
         accountManager.registerAccountUser(AccountListener())
 
-        // create login ui for testing purposes
+        loginDialog()
+    }
+
+    private fun loginDialog(){
         AlertDialog.Builder(this)
             .setView(R.layout.password_prompt)
             .setCancelable(true)
             // TODO add action
-            .setPositiveButton("Login", DialogInterface.OnClickListener() {_, _ -> })
+            .setPositiveButton(getString(R.string.LoginOption)) { _, _ -> }
+            .setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
             .show()
     }
 
