@@ -10,16 +10,18 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
-class AccountDataManager (private val mainContext: Context, private val mainLifecycle: Lifecycle){
+class AccountDataManager(
+    private val mainContext: Context,
+    //private val mainLifecycle: Lifecycle
+) {
     private val cardSP = mainContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
         .apply {
             registerOnSharedPreferenceChangeListener(CardSPListener())
         }
     private val accountListenerList = ArrayList<AccountUser>()
 
-    private var account : Account? by Delegates.observable(loadAccountData()) {
-            _, _, newValue ->
-        accountListenerList.forEach {it.onAccountChange(newValue)}
+    private var account: Account? by Delegates.observable(loadAccountData()) { _, _, newValue ->
+        accountListenerList.forEach { it.onAccountChange(newValue) }
     }
 
 
@@ -28,7 +30,7 @@ class AccountDataManager (private val mainContext: Context, private val mainLife
         accountListenerList.add(accountUser)
     }
 
-    private fun loadAccountData() : Account? {
+    private fun loadAccountData(): Account? {
         val fullName = cardSP.getString("fullName", null)
         val uuid = cardSP.getString("uuid", null)?.let {
             UUID.fromString(it)
@@ -44,7 +46,7 @@ class AccountDataManager (private val mainContext: Context, private val mainLife
         }
         // TODO add more format checks
 
-        val cardData : CardData? = cardId?.let { id ->
+        val cardData: CardData? = cardId?.let { id ->
             cardKey?.let { key -> CardData(Utils.toByteArray(id), Utils.toByteArray(key)) }
         }
         return fullName?.let {
@@ -53,11 +55,12 @@ class AccountDataManager (private val mainContext: Context, private val mainLife
             }
         }
     }
-    private fun saveAccountData(name: String?, uuid: UUID?){
+
+    private fun saveAccountData(name: String?, uuid: UUID?) {
         val editor = cardSP.edit()
         editor
-            .putString("uuid", uuid?.toString()?:"")
-            .putString("fullName", name?:"")
+            .putString("uuid", uuid?.toString() ?: "")
+            .putString("fullName", name ?: "")
             .apply()
     }
 

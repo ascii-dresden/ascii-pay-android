@@ -34,10 +34,16 @@ class MainActivity : AppCompatActivity() {
 
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
-        accountManager = AccountDataManager(this, lifecycle)
+        accountManager = AccountDataManager(this)
         accountManager.registerAccountUser(AccountListener())
 
         // create login ui for testing purposes
+        AlertDialog.Builder(this)
+            .setView(R.layout.password_prompt)
+            .setCancelable(true)
+            // TODO add action
+            .setPositiveButton("Login", DialogInterface.OnClickListener() {_, _ -> })
+            .show()
     }
 
     inner class AccountListener : AccountUser {

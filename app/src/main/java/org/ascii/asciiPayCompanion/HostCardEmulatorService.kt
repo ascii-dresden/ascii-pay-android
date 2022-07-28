@@ -4,6 +4,7 @@ import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.Lifecycle
 import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
 import org.ascii.asciiPayCompanion.Utils.Companion.toHex
