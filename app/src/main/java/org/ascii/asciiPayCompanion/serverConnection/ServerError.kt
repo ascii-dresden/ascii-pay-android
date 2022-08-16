@@ -1,4 +1,7 @@
 package org.ascii.asciiPayCompanion.serverConnection
 
-enum class LoginError {
+enum class ServerError {
+    networkNotAvailable,
+    loginFailure,
+    InvalidRequest,
 }

@@ -49,6 +49,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.0-rc02")
     implementation("com.apollographql.apollo3:apollo-runtime:3.3.2")
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
 
 }
 apollo {

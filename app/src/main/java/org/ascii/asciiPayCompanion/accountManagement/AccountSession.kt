@@ -10,6 +10,7 @@ import com.apollographql.apollo3.exception.ApolloException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.ascii.asciiPayCompanion.Utils
 import org.ascii.asciiPayCompanion.Utils.Companion.serverURL
@@ -28,46 +29,24 @@ class AccountSession(
 
     private var privilegedClient: ApolloClient? = null
 
-    fun <D : Operation.Data> privilegedRequest(
-        operation: (ApolloClient) -> (ApolloCall<D>),
-        callback: (D) -> Unit
-    ) {
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            try {
-                privilegedClient?.let(operation)?.execute()
-                    ?.data?.let {
-                        callback(it)
-                    } ?: let {
-                    // retry with a new login
-                    login()
-                    privilegedClient?.let(operation)?.execute()
-                        ?.data?.let {
-                            callback(it)
-                        }
-                }
-            } catch (e: ApolloException) {
-                networkError()
-            }
+    companion object {
+        suspend fun login() {
+            // TODO replace with card data login code
+            //unprivilegedClient.mutation(LoginMutation(username = username, password = password))
+            //    .execute()
+            //    .data?.login?.authorization?.let {
+            //        val okHttpClient = OkHttpClient.Builder()
+            //            .addInterceptor(AuthenticationInterceptor(it))
+            //            .build()
+            //        privilegedClient = ApolloClient.Builder()
+            //            .serverUrl(serverURL)
+            //            .build()
+            //    } ?: loginFailCallback()
         }
-    }
 
-    // change this to use card datas
-    suspend fun login() {
-        // TODO replace with card data login code
-       // unprivilegedClient.mutation(LoginMutation(username = username, password = password))
-       //     .execute()
-       //     .data?.login?.authorization?.let {
-       //         val okHttpClient = OkHttpClient.Builder()
-       //             .addInterceptor(AuthenticationInterceptor(it))
-       //             .build()
-       //         privilegedClient = ApolloClient.Builder()
-       //             .serverUrl(serverURL)
-       //             .build()
-       //     } ?: loginFailCallback()
-    }
-
-    private fun networkError() {
-        Log.e(Utils.TAG, "Failed to do graphql operation: Server not available")
+        private fun networkError() {
+            Log.e(Utils.TAG, "Failed to do graphql operation: Server not available")
+        }
     }
 
     class AuthenticationInterceptor(private val authorization: String): Interceptor{
