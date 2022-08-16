@@ -14,7 +14,6 @@ import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.accountManagement.AccountUser
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var accountManager : AccountDataManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +33,7 @@ class MainActivity : AppCompatActivity() {
 
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
-        accountManager = AccountDataManager(this)
-        accountManager.registerAccountUser(AccountListener())
+        AccountDataManager.registerAccountUser(AccountListener())
 
         loginDialog()
     }

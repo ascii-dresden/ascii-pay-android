@@ -1,20 +1,15 @@
 package org.ascii.asciiPayCompanion.accountManagement
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
+import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
-class AccountDataManager(
-    private val mainContext: Context,
-    //private val mainLifecycle: Lifecycle
-) {
-    private val cardSP = mainContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
+object AccountDataManager{
+    private val cardSP = App.appContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
         .apply {
             registerOnSharedPreferenceChangeListener(CardSPListener())
         }
@@ -66,7 +61,7 @@ class AccountDataManager(
 
 
     // reload all data from disk if it changes
-    inner class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
+    class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
         override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
             account = loadAccountData()
         }
