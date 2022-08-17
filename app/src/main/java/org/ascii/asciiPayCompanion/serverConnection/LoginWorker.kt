@@ -20,7 +20,7 @@ class LoginWorker(
             return@withContext Result.success()
         } catch (e: ApolloException) {
             return@withContext Result.failure(
-                Data.Builder().putInt("error", ServerError.networkNotAvailable.ordinal).build()
+                Data.Builder().putInt("error", ServerError.NetworkUnavailable.ordinal).build()
             )
         }
     }

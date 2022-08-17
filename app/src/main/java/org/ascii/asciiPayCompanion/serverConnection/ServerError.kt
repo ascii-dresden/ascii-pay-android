@@ -1,7 +1,8 @@
 package org.ascii.asciiPayCompanion.serverConnection
 
 enum class ServerError {
-    networkNotAvailable,
-    loginFailure,
+    NoError,
+    NetworkUnavailable,
+    LoginFailure,
     InvalidRequest,
 }
