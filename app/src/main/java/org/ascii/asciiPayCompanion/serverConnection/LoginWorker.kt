@@ -15,7 +15,7 @@ class LoginWorker(
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            AccountSession.login()
+            AccountSession.cardLogin()
             // TODO Error handling
             return@withContext Result.success()
         } catch (e: ApolloException) {

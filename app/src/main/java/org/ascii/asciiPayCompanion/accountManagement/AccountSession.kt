@@ -2,17 +2,11 @@ package org.ascii.asciiPayCompanion.accountManagement
 
 import android.util.Log
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.coroutineScope
-import androidx.work.Data
-import androidx.work.ListenableWorker
 import androidx.work.ListenableWorker.*
 import com.apollographql.apollo3.ApolloCall
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Operation
-import com.apollographql.apollo3.exception.ApolloException
 import com.apollographql.apollo3.network.okHttpClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -36,7 +30,7 @@ class AccountSession(
     private var privilegedClient: ApolloClient? = null
 
     companion object {
-        suspend fun login(cardData : CardData) : ServerError {
+        suspend fun cardLogin(session: AccountSession) : ServerError {
             // TODO replace with card data login code
             ApolloClient.Builder()
                 .serverUrl(serverURL)
@@ -70,7 +64,7 @@ class AccountSession(
                     return(it)
                 } ?: let {
                 // retry with a new login
-                login()
+                cardLogin()
                 privilegedClient?.let(operation)?.execute()
                     ?.data?.let {
                         return it

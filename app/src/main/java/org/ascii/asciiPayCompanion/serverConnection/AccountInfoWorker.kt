@@ -31,6 +31,8 @@ class AccountInfoWorker(
                         .putString("id", data.getAccount.id.toString())
                         .build())
             }?:let{
+                // return if no card data is provided by the app
+                // this should result in an Exception by the workers client
                 return@withContext Result.failure()
             }
         }
