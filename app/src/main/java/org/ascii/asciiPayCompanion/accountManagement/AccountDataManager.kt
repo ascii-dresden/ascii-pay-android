@@ -3,13 +3,22 @@ package org.ascii.asciiPayCompanion.accountManagement
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
+import androidx.work.*
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
+import org.ascii.asciiPayCompanion.serverConnection.AccountPreparationWorker
 import java.util.*
 import kotlin.properties.Delegates
 
 object AccountDataManager{
-    private val cardSP = App.appContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
+    const val cardSPName = "card"
+    const val nameAttr = "fullName"
+    const val idAttr = "cardId"
+    const val keyAttr = "key"
+    const val uuidAttr = "uuid"
+
+    private val cardSP = App.appContext.getSharedPreferences(cardSPName, AppCompatActivity.MODE_PRIVATE)
         .apply {
             registerOnSharedPreferenceChangeListener(CardSPListener())
         }
@@ -19,6 +28,17 @@ object AccountDataManager{
         accountListenerList.forEach { it.onAccountChange(newValue) }
     }
 
+    fun login(username: String, password: String): LiveData<Operation.State> {
+        return WorkManager.getInstance(App.appContext).enqueueUniqueWork(
+                "login",
+                ExistingWorkPolicy.REPLACE,
+                OneTimeWorkRequestBuilder<AccountPreparationWorker>()
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .setInputData(workDataOf("username" to username))
+                    .setInputData(workDataOf("password" to password))
+                    .build(),
+            ).state
+    }
 
     fun registerAccountUser(accountUser: AccountUser) {
         accountUser.onAccountChange(account)
@@ -26,12 +46,12 @@ object AccountDataManager{
     }
 
     private fun loadAccountData(): Account? {
-        val fullName = cardSP.getString("fullName", null)
-        val uuid = cardSP.getString("uuid", null)?.let {
+        val fullName = cardSP.getString(nameAttr, null)
+        val uuid = cardSP.getString(uuidAttr, null)?.let {
             UUID.fromString(it)
         }
-        val cardKey = cardSP.getString("key", null)
-        val cardId = cardSP.getString("cardId", null)
+        val cardKey = cardSP.getString(idAttr, null)
+        val cardId = cardSP.getString(idAttr, null)
 
         // check card id format
         cardId?.let {
@@ -51,14 +71,6 @@ object AccountDataManager{
         }
     }
 
-    private fun saveAccountData(name: String?, uuid: UUID?) {
-        val editor = cardSP.edit()
-        editor
-            .putString("uuid", uuid?.toString() ?: "")
-            .putString("fullName", name ?: "")
-            .apply()
-    }
-
 
     // reload all data from disk if it changes
     class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
@@ -70,10 +82,15 @@ object AccountDataManager{
     private fun createDummyCard() {
         // TODO replace this method with proper way of instantiating the card data
         val cardEditor = cardSP.edit()
-            .putString("cardId", "AFFE1337C0FFEE00")
-            .putString("key", "7665165AADE654654AACC112131415161718192021222324")
-            .putString("fullName", "Peter Zwegat")
-            .putString("uuid", "")
+            .putString(idAttr, "AFFE1337C0FFEE00")
+            .putString(keyAttr, "7665165AADE654654AACC112131415161718192021222324")
+            .putString(nameAttr, "Peter Zwegat")
+            .putString(uuidAttr, "")
         cardEditor.apply()
+    }
+
+    enum class AccountCompletionError {
+        InvalidCredentials,
+        Unknown,
     }
 }

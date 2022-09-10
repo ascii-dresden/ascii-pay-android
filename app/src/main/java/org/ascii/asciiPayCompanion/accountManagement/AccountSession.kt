@@ -30,6 +30,7 @@ class AccountSession(
     private var privilegedClient: ApolloClient? = null
 
     companion object {
+        // TODO replace session with auth token
         suspend fun cardLogin(session: AccountSession) : ServerError {
             // TODO replace with card data login code
             ApolloClient.Builder()
@@ -38,7 +39,6 @@ class AccountSession(
                 .mutation(LoginMutation(username = username, password = password))
                 .execute()
                 .data?.login?.authorization?.let {
-                    // TODO find a way to write back the authorization
                     return ServerError.NoError
                 }?:let{
                     return ServerError.LoginFailure

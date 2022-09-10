@@ -9,3 +9,12 @@ mutation Login($username: String!, $password: String!){
     authorization
   }
 }
+query PullCards{
+  getAccount{
+    nfcTokens{
+      cardId,
+      cardType,
+      name,
+    }
+  }
+}

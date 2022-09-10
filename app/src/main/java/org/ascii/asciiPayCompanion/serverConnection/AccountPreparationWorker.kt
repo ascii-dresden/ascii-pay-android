@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.ascii.asciiPayCompanion.LoginMutation
+import org.ascii.asciiPayCompanion.PullCardsQuery
 import org.ascii.asciiPayCompanion.Utils
 import org.ascii.asciiPayCompanion.accountManagement.AccountSession
 
@@ -46,10 +47,26 @@ CoroutineWorker(appContext, workerParams){
                                 val privilegedClient = ApolloClient.Builder()
                                     .serverUrl(Utils.serverURL)
                                     .build()
-                                // 2. check if the account has an ISO card registered and fetch it
-                                // TODO create card data fetch Requests
 
-                                // 3. If no ISO card is present create one and fetch its data
+                                // 2. check if the account has an ISO card registered and fetch it
+                                privilegedClient.query(PullCardsQuery())
+                                    .execute()
+                                    .data?.getAccount?.nfcTokens?.let { nfcTokens ->
+                                        for(obj in nfcTokens){
+                                            // TODO use the right string here
+                                            if (obj.cardType == "nfc"){
+                                                //TODO decide whether card key may be pulled
+                                            }
+                                        }
+                                        // 3. If no ISO card is present create one and fetch its data
+
+                                        // 4. Write data to storage
+
+                                    }?:let {
+                                        return@withContext Result.failure(
+                                            Data.Builder().putInt("error", ServerError.UnknownError.ordinal).build()
+                                        )
+                                }
 
                                 // TODO add return data to result type
                                 return@withContext Result.success()
@@ -60,12 +77,10 @@ CoroutineWorker(appContext, workerParams){
                                 )
                         }
                     }?:let {
-                        return@withContext Result.failure()
+                        throw IllegalArgumentException("No username/password was provided for login")
                     }
                 }?:let{
-                    // return if no login data is provided by the app
-                    // this should result in an Exception by the workers client
-                    return@withContext Result.failure()
+                    throw IllegalArgumentException("No username/password was provided for login")
                 }
         }
         catch (e: ApolloException) {

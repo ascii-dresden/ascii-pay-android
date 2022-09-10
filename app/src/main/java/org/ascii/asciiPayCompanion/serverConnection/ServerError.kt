@@ -5,4 +5,5 @@ enum class ServerError {
     NetworkUnavailable,
     LoginFailure,
     InvalidRequest,
+    UnknownError,
 }

@@ -1,6 +1,7 @@
 package org.ascii.asciiPayCompanion.serverConnection
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
@@ -11,6 +12,7 @@ import com.apollographql.apollo3.exception.ApolloException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.ascii.asciiPayCompanion.AccountInfoQuery
+import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.accountManagement.AccountSession
 
 class AccountInfoWorker(
@@ -25,6 +27,12 @@ class AccountInfoWorker(
                 val data: AccountInfoQuery.Data = AccountSession.privilegedRequest(auth){ client ->
                     client.query(AccountInfoQuery())
                 }
+                applicationContext.getSharedPreferences("card", AppCompatActivity.MODE_PRIVATE)
+                    .edit()
+                    .putString(AccountDataManager.nameAttr, data.getAccount.name)
+                    .putString(AccountDataManager.idAttr, data.getAccount.id.toString())
+                    .apply()
+
                 return@withContext Result.success(
                     Data.Builder()
                         .putString("name", data.getAccount.name)
