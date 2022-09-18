@@ -17,7 +17,6 @@ import org.ascii.asciiPayCompanion.serverConnection.ServerError
 
 class AccountSession(
     private val authenticationCard: CardData,
-    private val lifecycle: Lifecycle,
     private val loginFailCallback: () -> Unit,
 ) {
 

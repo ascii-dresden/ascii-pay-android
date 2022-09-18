@@ -28,6 +28,7 @@ object AccountDataManager{
         accountListenerList.forEach { it.onAccountChange(newValue) }
     }
 
+    // let the front end subscribe to the event
     fun login(username: String, password: String): LiveData<Operation.State> {
         return WorkManager.getInstance(App.appContext).enqueueUniqueWork(
                 "login",
@@ -87,10 +88,5 @@ object AccountDataManager{
             .putString(nameAttr, "Peter Zwegat")
             .putString(uuidAttr, "")
         cardEditor.apply()
-    }
-
-    enum class AccountCompletionError {
-        InvalidCredentials,
-        Unknown,
     }
 }

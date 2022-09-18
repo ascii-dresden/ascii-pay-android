@@ -22,6 +22,8 @@ class AccountPreparationWorker(
     workerParams: WorkerParameters,
 ) :
 CoroutineWorker(appContext, workerParams){
+    // expected return:
+    // error: ServerError
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             // extract username and password from workerParams

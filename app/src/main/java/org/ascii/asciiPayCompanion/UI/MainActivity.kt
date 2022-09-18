@@ -1,4 +1,4 @@
-package org.ascii.asciiPayCompanion
+package org.ascii.asciiPayCompanion.UI
 
 import android.content.DialogInterface
 import android.content.pm.PackageManager
@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
+import org.ascii.asciiPayCompanion.R
 import org.ascii.asciiPayCompanion.accountManagement.Account
 import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.accountManagement.AccountUser
@@ -34,18 +35,7 @@ class MainActivity : AppCompatActivity() {
         // this will cause our visual representation to be shown,
         //  which is why it is done relatively late
         AccountDataManager.registerAccountUser(AccountListener())
-
-        loginDialog()
-    }
-
-    private fun loginDialog(){
-        AlertDialog.Builder(this)
-            .setView(R.layout.password_prompt)
-            .setCancelable(true)
-            // TODO add action
-            .setPositiveButton(getString(R.string.LoginOption)) { _, _ -> }
-            .setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
-            .show()
+        LoginDialog().show(supportFragmentManager, LoginDialog.TAG)
     }
 
     inner class AccountListener : AccountUser {

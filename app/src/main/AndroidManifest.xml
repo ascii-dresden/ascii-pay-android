@@ -26,7 +26,7 @@
                 android:resource="@xml/apduservice" />
         </service>
         <activity
-            android:name=".MainActivity"
+            android:name=".UI.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
