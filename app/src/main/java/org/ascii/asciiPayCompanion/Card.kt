@@ -78,7 +78,7 @@ class Card(accountManager: AccountDataManager) {
     /*
     second stage of the authentication
     Request: start of authentication [1 Byte + 0 Byte] "10"
-    Response: ek_rndB [1 Byte + 8 Byte]
+    Response: ek_rndB [1 Byte + 32 Byte]
 
     "00 00 00 00 00 00 00 00 00"
     "01"
@@ -97,7 +97,7 @@ class Card(accountManager: AccountDataManager) {
 
             Log.e(TAG, "Starting Authentication...")
             // Generate client challenge
-            val rndB = rndB ?: Random.nextBytes(8)
+            val rndB = rndB ?: Random.nextBytes(32)
             // Encrypt challenge with secret key
             val ekRndb = encrypt(cardData.key, rndB)
 
@@ -107,9 +107,9 @@ class Card(accountManager: AccountDataManager) {
 
     /*
     third stage of the authentication
-    request: dk_rndA_rndBshifted [1 Byte + 16 Byte]
+    request: dk_rndA_rndBshifted [1 Byte + 64 Byte]
     "11 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-    response: ek_rndAshifted [1Byte + 8 Byte]
+    response: ek_rndAshifted [1Byte + 32 Byte]
     "00 00 00 00 00 00 00 00 00"
     "01"
     */
@@ -136,8 +136,8 @@ class Card(accountManager: AccountDataManager) {
             val rndA_rndBshifted = decrypt(key, dk_rndA_rndBshifted)
 
             // Split server request in client challenge response and server challenge
-            val rndA = rndA_rndBshifted.sliceArray(0..7)
-            val rndBshifted = rndA_rndBshifted.sliceArray(8..15)
+            val rndA = rndA_rndBshifted.sliceArray(0..31)
+            val rndBshifted = rndA_rndBshifted.sliceArray(32..63)
 
             // Verify client challenge response
             if (!rndBshifted.contentEquals(rndB.leftShift(1))) {
@@ -156,33 +156,32 @@ class Card(accountManager: AccountDataManager) {
     // functions needed for crypto
     // -----------------------------------------------------------
 
-    private fun tdesEncryptBlock(key: ByteArray, value: ByteArray): ByteArray {
-        val secretKey1 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
-        val secretKey2 = SecretKeySpec(key.sliceArray(8 until 16), "DES")
-        val secretKey3 = SecretKeySpec(key.sliceArray(0 until 8), "DES")
+    private fun aesEncryptBlock(key: ByteArray, value: ByteArray): ByteArray {
+        val secretKey = SecretKeySpec(key, "AES")
 
-        val cipher1 = Cipher.getInstance("DES/ECB/NoPadding")
-        val cipher2 = Cipher.getInstance("DES/ECB/NoPadding")
-        val cipher3 = Cipher.getInstance("DES/ECB/NoPadding")
+        val cipher = Cipher.getInstance("AES/ECB/NoPadding")
 
-        cipher1.init(Cipher.ENCRYPT_MODE, secretKey1)
-        val enc1 = cipher1.doFinal(value)
-        cipher2.init(Cipher.DECRYPT_MODE, secretKey2)
-        val enc2 = cipher2.doFinal(enc1)
-        cipher3.init(Cipher.ENCRYPT_MODE, secretKey3)
-        val enc3 = cipher3.doFinal(enc2)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+        return cipher.doFinal(value)
+    }
 
-        return enc3
+    private fun aesDecryptBlock(key: ByteArray, value: ByteArray): ByteArray {
+        val secretKey = SecretKeySpec(key, "AES")
+
+        val cipher = Cipher.getInstance("AES/ECB/NoPadding")
+
+        cipher.init(Cipher.DECRYPT_MODE, secretKey)
+        return cipher.doFinal(value)
     }
 
     fun encrypt(key: ByteArray, value: ByteArray): ByteArray {
-        var buffer = ByteArray(8)
+        var buffer = ByteArray(32)
         var result = ByteArray(0)
 
-        for (block in value.toList().chunked(8)) {
+        for (block in value.toList().chunked(32)) {
             val blockArray = block.toByteArray()
             val xorArray = blockArray.xor(buffer)
-            val enc = tdesEncryptBlock(key, xorArray)
+            val enc = aesEncryptBlock(key, xorArray)
 
             buffer = enc
             result += enc
@@ -192,12 +191,12 @@ class Card(accountManager: AccountDataManager) {
     }
 
     fun decrypt(key: ByteArray, value: ByteArray): ByteArray {
-        var buffer = ByteArray(8)
+        var buffer = ByteArray(32)
         var result = ByteArray(0)
 
-        for (block in value.toList().chunked(8)) {
+        for (block in value.toList().chunked(32)) {
             val blockArray = block.toByteArray()
-            val enc = tdesEncryptBlock(key, blockArray)
+            val enc = aesDecryptBlock(key, blockArray)
             val xorArray = enc.xor(buffer)
 
             buffer = blockArray
