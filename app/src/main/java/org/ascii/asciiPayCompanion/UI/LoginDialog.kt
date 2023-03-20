@@ -18,7 +18,7 @@ class LoginDialog : DialogFragment() {
                 val dialog = dialog ?: run { throw UnknownError() }
                 val username = dialog.findViewById<TextInputEditText>(R.id.AccountEmail).text.toString()
                 val password = dialog.findViewById<TextInputEditText>(R.id.AccountPassword).text.toString()
-                AccountDataManager.login(username, password)
+//                AccountDataManager.login(username, password)
             }
             .setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }
             .create()

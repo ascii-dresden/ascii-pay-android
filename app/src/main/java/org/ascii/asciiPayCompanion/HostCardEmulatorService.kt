@@ -12,7 +12,7 @@ import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 class HostCardEmulatorService : HostApduService() {
 
     private var card : Card? = null
-    private val accountManager = AccountDataManager(this)
+    private val accountManager = AccountDataManager
     override fun onCreate() {
         card = Card(accountManager)
         super.onCreate()

@@ -3,11 +3,8 @@ package org.ascii.asciiPayCompanion.accountManagement
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LiveData
-import androidx.work.*
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
-import org.ascii.asciiPayCompanion.serverConnection.AccountPreparationWorker
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -26,19 +23,6 @@ object AccountDataManager{
 
     private var account: Account? by Delegates.observable(loadAccountData()) { _, _, newValue ->
         accountListenerList.forEach { it.onAccountChange(newValue) }
-    }
-
-    // let the front end subscribe to the event
-    fun login(username: String, password: String): LiveData<Operation.State> {
-        return WorkManager.getInstance(App.appContext).enqueueUniqueWork(
-                "login",
-                ExistingWorkPolicy.REPLACE,
-                OneTimeWorkRequestBuilder<AccountPreparationWorker>()
-                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                    .setInputData(workDataOf("username" to username))
-                    .setInputData(workDataOf("password" to password))
-                    .build(),
-            ).state
     }
 
     fun registerAccountUser(accountUser: AccountUser) {
