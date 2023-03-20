@@ -1,6 +1,6 @@
 package org.ascii.asciiPayCompanion.api
 
-class AsciiPayApi(val token: String) {
+class Api(val token: String) {
 
     fun getSelf(resultHandler: ResultHandler<Account>) {
     }

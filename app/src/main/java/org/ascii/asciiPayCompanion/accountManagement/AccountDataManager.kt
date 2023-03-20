@@ -5,11 +5,14 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
+import org.ascii.asciiPayCompanion.api.Api
+import org.ascii.asciiPayCompanion.api.ResultHandler
 import java.util.*
 import kotlin.properties.Delegates
 
 object AccountDataManager{
     const val cardSPName = "card"
+    const val tokenAttr = "token"
     const val nameAttr = "fullName"
     const val idAttr = "cardId"
     const val keyAttr = "key"
@@ -21,15 +24,32 @@ object AccountDataManager{
         }
     private val accountListenerList = ArrayList<AccountUser>()
 
-    private var account: Account? by Delegates.observable(loadAccountData()) { _, _, newValue ->
-        accountListenerList.forEach { it.onAccountChange(newValue) }
+    // create Account Session and make sure to update all accountListeners on change of the session
+    private var accountSession: AccountSession? by Delegates.observable(loadSession()) { _, _, newSession ->
+        accountListenerList.forEach { it.onAccountChange(newSession?.account) }
+    }
+
+    internal class AccountSession(
+        val api: Api,
+    ){
+        var account: Account? by Delegates.observable(loadAccountData()) { _, _, newAccount ->
+            accountListenerList.forEach { it.onAccountChange(newAccount) }
+        }
     }
 
     fun registerAccountUser(accountUser: AccountUser) {
-        accountUser.onAccountChange(account)
+        accountUser.onAccountChange(accountSession?.account)
         accountListenerList.add(accountUser)
     }
 
+    private fun loadSession(): AccountSession? {
+        val token = cardSP.getString(tokenAttr, null)
+        return token?.let { token ->
+            AccountSession(
+                Api(token),
+            )
+        }
+    }
     private fun loadAccountData(): Account? {
         val fullName = cardSP.getString(nameAttr, null)
         val uuid = cardSP.getString(uuidAttr, null)?.let {
@@ -60,7 +80,7 @@ object AccountDataManager{
     // reload all data from disk if it changes
     class CardSPListener : SharedPreferences.OnSharedPreferenceChangeListener {
         override fun onSharedPreferenceChanged(sp: SharedPreferences, name: String) {
-            account = loadAccountData()
+            accountSession = loadSession()
         }
     }
 
@@ -72,5 +92,9 @@ object AccountDataManager{
             .putString(nameAttr, "Peter Zwegat")
             .putString(uuidAttr, "")
         cardEditor.apply()
+    }
+
+    fun login(username: String, password: String, resultHandler: ResultHandler<>) {
+        TODO("Not yet implemented")
     }
 }

@@ -1,8 +1,4 @@
 package org.ascii.asciiPayCompanion.accountManagement
 
-class AccountSession(
-    private val authenticationCard: CardData,
-    private val loginFailCallback: () -> Unit,
-) {
+import org.ascii.asciiPayCompanion.api.Api
 
-}
