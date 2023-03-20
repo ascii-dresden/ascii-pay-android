@@ -94,7 +94,7 @@ object AccountDataManager{
         cardEditor.apply()
     }
 
-    fun login(username: String, password: String, resultHandler: ResultHandler<>) {
+    fun login(username: String, password: String, success: ()->Unit, error: ()->Unit) {
         TODO("Not yet implemented")
     }
 }
