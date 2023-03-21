@@ -23,6 +23,6 @@
     <string name="LoginOption">Login</string>
     <string name="WrongCredentials">Username or password are incorrect. Please try again.</string>
     <string name="networkUnavailable">Please check your internet connection.</string>
-    <string name="unknownLoginError">An unknown error occurred while trying to logon.</string>
+    <string name="unknownLoginError">An unknown error occurred while trying to login.</string>
 
 </resources>

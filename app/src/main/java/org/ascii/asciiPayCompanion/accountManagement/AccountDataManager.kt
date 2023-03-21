@@ -112,8 +112,11 @@ object AccountDataManager{
 
             override fun onError(status: Int, error: String) {
                 Log.e("LOGIN", "Error $status")
-                // TODO case decision between error types
-                error(LoginError.wrongCredentials)
+                error(when (status) {
+                    401 -> LoginError.wrongCredentials
+                    0 -> LoginError.networkUnavailable
+                    else -> LoginError.unknown
+                })
             }
         })
     }
