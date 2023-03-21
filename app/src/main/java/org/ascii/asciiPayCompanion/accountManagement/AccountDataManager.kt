@@ -5,8 +5,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
-import org.ascii.asciiPayCompanion.api.Api
-import org.ascii.asciiPayCompanion.api.ResultHandler
 import java.util.*
 import kotlin.properties.Delegates
 

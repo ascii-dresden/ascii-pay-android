@@ -7,11 +7,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.textfield.TextInputEditText
 import org.ascii.asciiPayCompanion.R
-import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
-import org.ascii.asciiPayCompanion.api.AccountDto
-import org.ascii.asciiPayCompanion.api.Api
-import org.ascii.asciiPayCompanion.api.AuthResponseDto
-import org.ascii.asciiPayCompanion.api.ResultHandler
+import org.ascii.asciiPayCompanion.accountManagement.AccountDto
+import org.ascii.asciiPayCompanion.accountManagement.Api
+import org.ascii.asciiPayCompanion.accountManagement.AuthResponseDto
+import org.ascii.asciiPayCompanion.accountManagement.ResultHandler
 
 class LoginDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -29,19 +28,35 @@ class LoginDialog : DialogFragment() {
                     override fun onSuccess(value: AuthResponseDto) {
                         Log.e("LOGIN", "Success: ${value.token}")
 
-                        Api(value.token).getSelf(object : ResultHandler<AccountDto> {
+                        val api = Api(value.token);
+                        api.getSelf(object : ResultHandler<AccountDto> {
                             override fun onSuccess(value: AccountDto) {
                                 Log.e("ACCOUNT", "Success: $value")
+
+                                api.createNfcCard(
+                                    value.id,
+                                    "Ascii Pay Card",
+                                    byteArrayOf(10, 15, 20, 25),
+                                    byteArrayOf(10, 15, 20, 25),
+                                    object : ResultHandler<Unit> {
+                                        override fun onSuccess(value: Unit) {
+                                            Log.e("NFC", "Success")
+                                        }
+
+                                        override fun onError(status: Int, error: String) {
+                                            Log.e("NFC", "Error $status: $error")
+                                        }
+                                    })
                             }
 
                             override fun onError(status: Int, error: String) {
-                                Log.e("ACCOUNT", "Error $status")
+                                Log.e("ACCOUNT", "Error $status: $error")
                             }
                         })
                     }
 
                     override fun onError(status: Int, error: String) {
-                        Log.e("LOGIN", "Error $status")
+                        Log.e("LOGIN", "Error $status: $error")
                     }
                 })
             }.setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.cancel() }

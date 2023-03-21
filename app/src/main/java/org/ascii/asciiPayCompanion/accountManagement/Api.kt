@@ -1,5 +1,7 @@
-package org.ascii.asciiPayCompanion.api
+package org.ascii.asciiPayCompanion.accountManagement
 
+import android.util.Base64
+import android.util.Log
 import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -9,11 +11,11 @@ import okio.IOException
 const val BASE_URL = "https://ascii.lars-westermann.de/api/v1"
 private val client = OkHttpClient()
 
-class Api(val token: String) {
+class Api(private val token: String) {
 
     fun getSelf(resultHandler: ResultHandler<AccountDto>) {
         val request = Request.Builder()
-            .url("${BASE_URL}/auth/account")
+            .url("$BASE_URL/auth/account")
             .header("AUTHORIZATION", "Bearer $token")
             .get()
             .build()
@@ -43,7 +45,7 @@ class Api(val token: String) {
 
     fun logout(resultHandler: ResultHandler<Unit>) {
         val request = Request.Builder()
-            .url("${BASE_URL}/auth")
+            .url("$BASE_URL/auth")
             .header("AUTHORIZATION", "Bearer $token")
             .delete()
             .build()
@@ -74,6 +76,40 @@ class Api(val token: String) {
         data: ByteArray,
         resultHandler: ResultHandler<Unit>
     ) {
+        val request = Request.Builder()
+            .url("$BASE_URL/account/$accountId/nfc-authentication")
+            .header("AUTHORIZATION", "Bearer $token")
+            .post(
+                gson.toJson(
+                    CreateAuthNfcDto(
+                        name,
+                        Base64.encodeToString(cardId, Base64.NO_WRAP),
+                        CardTypeDto.HostCardEmulation,
+                        Base64.encodeToString(data, Base64.NO_WRAP),
+                        true
+                    )
+                )
+                    .toRequestBody("application/json; charset=utf-8".toMediaType())
+            )
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                resultHandler.onError(0, e.toString())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        resultHandler.onError(response.code, response.body?.string() ?: "")
+                        return
+                    }
+
+                    resultHandler.onSuccess(Unit)
+                }
+            }
+        })
     }
 
     companion object {
@@ -84,7 +120,7 @@ class Api(val token: String) {
             resultHandler: ResultHandler<AuthResponseDto>
         ) {
             val request = Request.Builder()
-                .url("${BASE_URL}/auth/password")
+                .url("$BASE_URL/auth/password?long_lived=true")
                 .post(
                     gson.toJson(AuthPasswordDto(username, password))
                         .toRequestBody("application/json; charset=utf-8".toMediaType())
@@ -140,6 +176,20 @@ enum class RoleDto {
     Member,
     Admin,
 }
+
+enum class CardTypeDto {
+    GenericNfc,
+    AsciiMifare,
+    HostCardEmulation,
+}
+
+data class CreateAuthNfcDto(
+    val name: String,
+    val card_id: String,
+    val card_type: CardTypeDto,
+    val data: String?,
+    val depends_on_session: Boolean?,
+)
 
 interface ResultHandler<T> {
     fun onSuccess(value: T)
