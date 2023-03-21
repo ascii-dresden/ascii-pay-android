@@ -2,12 +2,11 @@ package org.ascii.asciiPayCompanion
 
 import android.os.Bundle
 import android.util.Log
-import org.ascii.asciiPayCompanion.accountManagement.Account
-import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
-import org.ascii.asciiPayCompanion.accountManagement.AccountUser
-import org.ascii.asciiPayCompanion.accountManagement.CardData
 import org.ascii.asciiPayCompanion.Utils.Companion.TAG
 import org.ascii.asciiPayCompanion.Utils.Companion.toByteArray
+import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
+import org.ascii.asciiPayCompanion.accountManagement.AccountSession
+import org.ascii.asciiPayCompanion.accountManagement.CardData
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.xor
@@ -32,10 +31,10 @@ class Card(accountManager: AccountDataManager) {
         accountManager.registerAccountUser(AccountListener())
     }
 
-    inner class AccountListener : AccountUser {
-        override fun onAccountChange(account: Account?) {
+    inner class AccountListener : AccountDataManager.AccountUser {
+        override fun onAccountChange(accountSession: AccountSession?) {
             // if the account is non null and has card data save it, otherwise set card data to null
-            cardData = account?.cardData
+            cardData = accountSession?.cardData
         }
 
     }

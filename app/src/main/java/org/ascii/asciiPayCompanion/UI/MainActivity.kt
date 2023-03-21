@@ -2,17 +2,16 @@ package org.ascii.asciiPayCompanion.UI
 
 import android.content.DialogInterface
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import org.ascii.asciiPayCompanion.R
-import org.ascii.asciiPayCompanion.accountManagement.Account
 import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
-import org.ascii.asciiPayCompanion.accountManagement.AccountUser
+import org.ascii.asciiPayCompanion.accountManagement.AccountSession
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         LoginDialog().show(supportFragmentManager, LoginDialog.TAG)
     }
 
-    inner class AccountListener : AccountUser {
-        override fun onAccountChange(account: Account?) {
+    inner class AccountListener : AccountDataManager.AccountUser {
+        override fun onAccountChange(accountSession: AccountSession?) {
             val cardView: CardView? = findViewById(R.id.cardVisual)
-            account?.let { account ->
+            accountSession?.let { account ->
                 cardView?.let {
                     cardView.visibility = View.VISIBLE
                     // decide whether to show a virtual representation of the card

@@ -1,9 +1,8 @@
 package org.ascii.asciiPayCompanion.accountManagement
 
-import java.util.*
-
-data class Account(
+data class AccountSession(
+    val token: String,
     val name: String,
-    val uuid: UUID,
-    var cardData: CardData?
+    val uid: Int,
+    var cardData: CardData
 )
