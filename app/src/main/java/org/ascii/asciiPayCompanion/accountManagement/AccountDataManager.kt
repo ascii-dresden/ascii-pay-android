@@ -109,7 +109,6 @@ object AccountDataManager{
 
                     override fun onError(status: Int, error: String) {
                         Log.e("ACCOUNT", "Error $status")
-                        // TODO case decision between error types
                         error(LoginError.unknown)
                     }
                 })
@@ -117,6 +116,8 @@ object AccountDataManager{
 
             override fun onError(status: Int, error: String) {
                 Log.e("LOGIN", "Error $status")
+                // TODO case decision between error types
+                error(LoginError.wrongCredentials)
             }
         })
     }
