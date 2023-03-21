@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
+import org.ascii.asciiPayCompanion.api.AccountDto
 import org.ascii.asciiPayCompanion.api.Api
+import org.ascii.asciiPayCompanion.api.AuthResponseDto
 import org.ascii.asciiPayCompanion.api.ResultHandler
 import java.util.*
 import kotlin.properties.Delegates
@@ -94,7 +96,28 @@ object AccountDataManager{
         cardEditor.apply()
     }
 
-    fun login(username: String, password: String, success: ()->Unit, error: ()->Unit) {
-        TODO("Not yet implemented")
+    fun login(username: String, password: String, success: ()->Unit, error: (LoginError)->Unit) {
+        Api.login(username, password, object : ResultHandler<AuthResponseDto> {
+            override fun onSuccess(value: AuthResponseDto) {
+                Log.e("LOGIN", "Success: ${value.token}")
+
+                Api(value.token).getSelf(object : ResultHandler<AccountDto> {
+                    override fun onSuccess(value: AccountDto) {
+                        Log.e("ACCOUNT", "Success: $value")
+                        success()
+                    }
+
+                    override fun onError(status: Int, error: String) {
+                        Log.e("ACCOUNT", "Error $status")
+                        // TODO case decision between error types
+                        error(LoginError.unknown)
+                    }
+                })
+            }
+
+            override fun onError(status: Int, error: String) {
+                Log.e("LOGIN", "Error $status")
+            }
+        })
     }
 }
