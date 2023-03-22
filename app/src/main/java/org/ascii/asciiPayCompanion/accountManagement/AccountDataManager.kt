@@ -1,13 +1,15 @@
 package org.ascii.asciiPayCompanion.accountManagement
 
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import org.ascii.asciiPayCompanion.App
 import org.ascii.asciiPayCompanion.Utils
+import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 import java.util.*
 import kotlin.properties.Delegates
 
-object AccountDataManager{
+object AccountDataManager {
     const val cardSPName = "card"
     const val tokenAttr = "token"
     const val nameAttr = "fullName"
@@ -17,13 +19,18 @@ object AccountDataManager{
 
     // create Account Session and make sure to update all accountListeners on change of the session
     private val accountListenerList = ArrayList<AccountUser>()
-    private val cardSP = App.appContext.getSharedPreferences(cardSPName, AppCompatActivity.MODE_PRIVATE)
-        .apply {
-            registerOnSharedPreferenceChangeListener { _, _ ->
-                accountSession = loadSession()
-                accountListenerList.forEach { it.onAccountChange(accountSession) }}
-        }
+    private val cardSPListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        accountSession = loadSession()
+        accountListenerList.forEach { it.onAccountChange(accountSession) }
+        Log.e("LOADSESSION", "got data load update. new: $accountSession")
+    }
+    private val cardSP =
+        App.appContext.getSharedPreferences(cardSPName, AppCompatActivity.MODE_PRIVATE)
     private var accountSession = loadSession()
+
+    init {
+        cardSP.registerOnSharedPreferenceChangeListener(cardSPListener)
+    }
 
 
     fun registerAccountUser(accountUser: AccountUser) {
@@ -34,7 +41,7 @@ object AccountDataManager{
     private fun loadSession(): AccountSession? {
         val token = cardSP.getString(tokenAttr, null)
         val name = cardSP.getString(nameAttr, null)
-        val uid = cardSP.getString(uidAttr, null)?.toInt()
+        val uid = cardSP.getInt(uidAttr, 0)
         val cardKey = cardSP.getString(cardIdAttr, null)
         val cardId = cardSP.getString(cardIdAttr, null)
 
@@ -49,23 +56,27 @@ object AccountDataManager{
         val cardData: CardData? = cardId?.let { id ->
             cardKey?.let { key -> CardData(Utils.toByteArray(id), Utils.toByteArray(key)) }
         }
+        if (uid == 0) return null
         return name?.let {
-            uid?.let {
-                cardData?.let {
-                    token?.let {
-                        AccountSession(
-                            token,
-                            name,
-                            uid,
-                            cardData,
-                        )
-                    }
+            cardData?.let {
+                token?.let {
+                    AccountSession(
+                        token,
+                        name,
+                        uid,
+                        cardData,
+                    )
                 }
             }
         }
     }
 
-    fun login(username: String, password: String, success: ()->Unit, error: (LoginError)->Unit) {
+    fun login(
+        username: String,
+        password: String,
+        success: () -> Unit,
+        error: (LoginError) -> Unit,
+    ) {
         Api.login(username, password, object : ResultHandler<AuthResponseDto> {
             override fun onSuccess(value: AuthResponseDto) {
                 val authResponseDto = value
@@ -82,18 +93,20 @@ object AccountDataManager{
                             // TODO how to prevent collisions?
                             newCard.id,
                             newCard.key,
-                            object : ResultHandler<Unit>{
+                            object : ResultHandler<Unit> {
                                 override fun onSuccess(value: Unit) {
                                     Log.e("NFCCardCreation", "success $newCard")
                                     cardSP.edit()
                                         .putString(tokenAttr, authResponseDto.token)
-                                        .putString(uidAttr, accountDto.id.toString())
+                                        .putInt(uidAttr, accountDto.id)
                                         .putString(nameAttr, accountDto.name)
-                                        .putString(cardIdAttr, newCard.id.toString())
+                                        .putString(cardIdAttr, toHex(newCard.id))
                                         .putString(cardKeyAttr, newCard.key.toString())
                                         .apply()
+                                    Log.e("LOGIN", "saved data")
                                     success()
                                 }
+
                                 override fun onError(status: Int, error: String) {
                                     Log.e("NFCCardCreation", "Error $status")
                                 }
@@ -110,11 +123,13 @@ object AccountDataManager{
 
             override fun onError(status: Int, error: String) {
                 Log.e("LOGIN", "Error $status")
-                error(when (status) {
-                    401 -> LoginError.wrongCredentials
-                    0 -> LoginError.networkUnavailable
-                    else -> LoginError.unknown
-                })
+                error(
+                    when (status) {
+                        401 -> LoginError.wrongCredentials
+                        0 -> LoginError.networkUnavailable
+                        else -> LoginError.unknown
+                    }
+                )
             }
         })
     }
