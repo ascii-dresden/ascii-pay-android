@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import org.ascii.asciiPayCompanion.R
+import org.ascii.asciiPayCompanion.Utils.Companion.toHex
 import org.ascii.asciiPayCompanion.accountManagement.AccountDataManager
 import org.ascii.asciiPayCompanion.accountManagement.AccountSession
 
@@ -19,6 +20,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.e("Ascii Companion App", "Starting up!")
+        AccountDataManager.registerAccountUser(AccountListener())
+        val addCardPreview = findViewById<CardView>(R.id.addCardPreview)
+        addCardPreview.setOnClickListener{
+            LoginDialog().show(supportFragmentManager, LoginDialog.TAG)
+        }
 
         val pm = this.packageManager
         val hasNFC = pm.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)
@@ -30,11 +36,6 @@ class MainActivity : AppCompatActivity() {
             {_, _ -> })
             alertDialog.show()
         }
-
-        // this will cause our visual representation to be shown,
-        //  which is why it is done relatively late
-        AccountDataManager.registerAccountUser(AccountListener())
-        LoginDialog().show(supportFragmentManager, LoginDialog.TAG)
     }
 
     inner class AccountListener : AccountDataManager.AccountUser {
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
                     // decide whether to show a virtual representation of the card
                     findViewById<TextView>(R.id.cardInformation)?.let { textView ->
                         // TODO use another field than the (very technical) nfc ID
-                        val cardId = account.cardData?.id ?: String()
+                        val cardId = toHex(account.cardData.id)
                         textView.text = getString(R.string.visualCardFormat, account.name, cardId)
                     }
                 }

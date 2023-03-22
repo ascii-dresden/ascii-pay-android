@@ -14,7 +14,7 @@ object AccountDataManager {
     const val tokenAttr = "token"
     const val nameAttr = "fullName"
     const val cardIdAttr = "cardId"
-    const val cardKeyAttr = "key"
+    const val cardKeyAttr = "cardKey"
     const val uidAttr = "uid"
 
     // create Account Session and make sure to update all accountListeners on change of the session
@@ -44,14 +44,7 @@ object AccountDataManager {
         val uid = cardSP.getInt(uidAttr, 0)
         val cardKey = cardSP.getString(cardIdAttr, null)
         val cardId = cardSP.getString(cardIdAttr, null)
-
-        // check card id format
-        cardId?.let {
-            if (it.length != 8) {
-                Log.e(Utils.TAG, "Card id is malformed: $it")
-            }
-        }
-        // TODO add more format checks
+        // TODO add format checks
 
         val cardData: CardData? = cardId?.let { id ->
             cardKey?.let { key -> CardData(Utils.toByteArray(id), Utils.toByteArray(key)) }
@@ -101,7 +94,7 @@ object AccountDataManager {
                                         .putInt(uidAttr, accountDto.id)
                                         .putString(nameAttr, accountDto.name)
                                         .putString(cardIdAttr, toHex(newCard.id))
-                                        .putString(cardKeyAttr, newCard.key.toString())
+                                        .putString(cardKeyAttr, toHex(newCard.key))
                                         .apply()
                                     Log.e("LOGIN", "saved data")
                                     success()
